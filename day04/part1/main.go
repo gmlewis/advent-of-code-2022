@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 
 	. "github.com/gmlewis/advent-of-code-2021/enum"
 	"github.com/gmlewis/advent-of-code-2021/must"
@@ -24,5 +25,19 @@ func process(filename string) {
 	logf("Processing %v ...", filename)
 	buf := must.ReadFile(filename)
 
-	printf("Solution: %v\n", len(buf))
+	pairs := strings.Split(buf, "\n")
+	fullOverlaps := Filter(pairs, findOverlap)
+
+	printf("Solution: %v\n", len(fullOverlaps))
+}
+
+func findOverlap(s string) bool {
+	parts := strings.Split(s, ",")
+	range1 := strings.Split(parts[0], "-")
+	range2 := strings.Split(parts[1], "-")
+	x1 := must.Atoi(range1[0])
+	x2 := must.Atoi(range1[1])
+	x3 := must.Atoi(range2[0])
+	x4 := must.Atoi(range2[1])
+	return (x1 >= x3 && x2 <= x4) || (x3 >= x1 && x4 <= x2)
 }
