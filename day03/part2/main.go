@@ -30,7 +30,7 @@ func process(filename string) {
 	dups := Map(groups, findDups)
 	// log.Printf("dups=%+v", dups)
 	priorities := Map(dups, itemPriority)
-	sum := Reduce(priorities, 0, func(acc, v int) int { return acc + v })
+	sum := Sum(priorities)
 
 	printf("Solution: %v\n", sum)
 }

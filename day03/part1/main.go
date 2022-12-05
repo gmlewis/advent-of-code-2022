@@ -28,7 +28,7 @@ func process(filename string) {
 	sacks := strings.Split(buf, "\n")
 	dups := Map(sacks, findDups)
 	priorities := Map(dups, itemPriority)
-	sum := Reduce(priorities, 0, func(acc, v int) int { return acc + v })
+	sum := Sum(priorities)
 
 	printf("Solution: %v\n", sum)
 }

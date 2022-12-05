@@ -31,7 +31,7 @@ func process(filename string) {
 
 	elvesTotals := Map(elvesCalories, func(calLines string) int {
 		cals := Map(strings.Split(calLines, "\n"), must.Atoi)
-		return Reduce(cals, 0, func(acc, v int) int { return acc + v })
+		return Sum(cals)
 	})
 	sort.Ints(elvesTotals)
 	// log.Printf("%+v", elvesTotals)

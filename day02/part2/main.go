@@ -31,7 +31,7 @@ func process(filename string) {
 	scores := Map(games, scoreGame)
 	// log.Printf("%+v", scores)
 
-	totalScore := Reduce(scores, 0, func(acc, v int) int { return acc + v })
+	totalScore := Sum(scores)
 	printf("Solution: %v\n", totalScore)
 }
 
