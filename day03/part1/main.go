@@ -23,9 +23,8 @@ func main() {
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
 
-	sacks := strings.Split(buf, "\n")
+	sacks := must.ReadFileLines(filename)
 	dups := Map(sacks, findDups)
 	priorities := Map(dups, itemPriority)
 	sum := Sum(priorities)

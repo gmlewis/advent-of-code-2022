@@ -24,9 +24,8 @@ func main() {
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
 
-	elvesCalories := strings.Split(buf, "\n\n")
+	elvesCalories := must.ReadSplitFile(filename, "\n\n")
 	// log.Printf("%v elves", len(elvesCalories))
 
 	elvesTotals := Map(elvesCalories, func(calLines string) int {

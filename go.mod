@@ -3,7 +3,7 @@ module github.com/gmlewis/advent-of-code-2022
 go 1.19
 
 require (
-	github.com/gmlewis/advent-of-code-2021 v0.0.29
+	github.com/gmlewis/advent-of-code-2021 v0.0.32
 	github.com/google/go-cmp v0.5.6
 )
 

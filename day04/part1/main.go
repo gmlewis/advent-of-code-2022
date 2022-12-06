@@ -23,9 +23,8 @@ func main() {
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
 
-	pairs := strings.Split(buf, "\n")
+	pairs := must.ReadFileLines(filename)
 	fullOverlaps := Filter(pairs, findOverlap)
 
 	printf("Solution: %v\n", len(fullOverlaps))

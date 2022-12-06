@@ -30,9 +30,8 @@ var (
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
 
-	parts := strings.Split(buf, "\n\n")
+	parts := must.ReadSplitFile(filename, "\n\n")
 	stacks := parseStacks(parts[0])
 	stackKeys := maps.Keys(stacks)
 

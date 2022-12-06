@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strings"
 
 	. "github.com/gmlewis/advent-of-code-2021/enum"
 	"github.com/gmlewis/advent-of-code-2021/must"
@@ -23,9 +22,8 @@ func main() {
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
 
-	games := strings.Split(buf, "\n")
+	games := must.ReadFileLines(filename)
 	// log.Printf("%v games", len(games))
 
 	scores := Map(games, scoreGame)

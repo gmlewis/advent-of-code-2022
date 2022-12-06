@@ -1,4 +1,4 @@
-// -*- compile-command: "go run main.go ../example1.txt ../input.txt"; -*-
+// -*- compile-command: "go run main.go ../example*.txt ../input.txt"; -*-
 
 package main
 
@@ -24,5 +24,20 @@ func process(filename string) {
 	logf("Processing %v ...", filename)
 	buf := must.ReadFile(filename)
 
-	printf("Solution: %v\n", len(buf))
+	parts := ChunkEvery([]rune(buf), 14, 1)
+	index := 14 + FindFirst(parts, allUnique)
+
+	printf("Solution: %v\n", index)
+}
+
+func allUnique(s []rune) bool {
+	m := map[rune]bool{}
+	for _, r := range s {
+		if m[r] {
+			return false
+		}
+		m[r] = true
+	}
+	log.Printf("found: %v", string(s))
+	return true
 }

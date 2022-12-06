@@ -1,7 +1,5 @@
-github.com/gmlewis/advent-of-code-2021 v0.0.28 h1:3QYzKeaUwr+qYPtLM9UVp2IKz4oslO8olB1Rq/mhpKg=
-github.com/gmlewis/advent-of-code-2021 v0.0.28/go.mod h1:RCFdWsTUb2xDmdb94epDBZGMm2mPy57bvPqTs4Z5q7A=
-github.com/gmlewis/advent-of-code-2021 v0.0.29 h1:KNXPYQUkAKqUbdwrBJ7I+SzVhg/+hgLaKM9v8pZrzMk=
-github.com/gmlewis/advent-of-code-2021 v0.0.29/go.mod h1:RCFdWsTUb2xDmdb94epDBZGMm2mPy57bvPqTs4Z5q7A=
+github.com/gmlewis/advent-of-code-2021 v0.0.32 h1:oeDoW4h+PgdWWrXdRIlOiwVwZ/lnjtj+qhUmj3ffOg0=
+github.com/gmlewis/advent-of-code-2021 v0.0.32/go.mod h1:RCFdWsTUb2xDmdb94epDBZGMm2mPy57bvPqTs4Z5q7A=
 github.com/google/go-cmp v0.5.6 h1:BKbKCqvP6I+rmFHt06ZmyQtvB8xAkWdhFyr0ZUNZcxQ=
 github.com/google/go-cmp v0.5.6/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 golang.org/x/exp v0.0.0-20220314205449-43aec2f8a4e7 h1:jynE66seADJbyWMUdeOyVTvPtBZt7L6LJHupGwxPZRM=
