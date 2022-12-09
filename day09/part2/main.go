@@ -21,12 +21,16 @@ func main() {
 	Each(flag.Args(), process)
 }
 
+const numKnots = 10
+
 func process(filename string) {
 	logf("Processing %v ...", filename)
 	lines := must.ReadFileLines(filename)
 
 	puz := puzT{visited: map[keyT]bool{}}
 	puz.makeMoves(lines)
+
+	// 2600 is too low.
 
 	printf("Solution: %v\n", len(puz.visited))
 }
@@ -37,13 +41,12 @@ func (k keyT) x() int { return k[0] }
 func (k keyT) y() int { return k[1] }
 
 type puzT struct {
-	head    keyT
-	tail    keyT
+	knots   [numKnots]keyT
 	visited map[keyT]bool
 }
 
 func (p *puzT) makeMoves(moves []string) {
-	p.visited[p.tail] = true
+	p.visited[p.knots[numKnots-1]] = true
 	for _, move := range moves {
 		parts := strings.Split(move, " ")
 		d := must.Atoi(parts[1])
@@ -61,63 +64,74 @@ func (p *puzT) makeMoves(moves []string) {
 			log.Fatalf("bad dir: %v", parts[0])
 		}
 		for i := 0; i < d; i++ {
-			p.move(dx, dy)
-			p.visited[p.tail] = true
+			for knot := 0; knot < numKnots-1; knot++ {
+				p.move(knot, dx, dy)
+			}
+			p.visited[p.knots[numKnots-1]] = true
 		}
 	}
 }
 
-func (p *puzT) move(dx, dy int) {
-	newHead := keyT{p.head.x() + dx, p.head.y() + dy}
+func (p *puzT) move(knot, dx, dy int) {
+	newHead := p.knots[knot]
+	if knot == 0 {
+		newHead = keyT{newHead.x() + dx, newHead.y() + dy}
+		p.knots[0] = newHead
+	}
 	switch {
 	// just move the head.
 	case
-		p.tail.x() == newHead.x() && p.tail.y() == newHead.y(),
-		p.tail.x() == newHead.x()+1 && p.tail.y() == newHead.y(),
-		p.tail.x() == newHead.x()-1 && p.tail.y() == newHead.y(),
-		p.tail.x() == newHead.x() && p.tail.y() == newHead.y()+1,
-		p.tail.x() == newHead.x() && p.tail.y() == newHead.y()-1,
-		p.tail.x() == newHead.x()+1 && p.tail.y() == newHead.y()+1,
-		p.tail.x() == newHead.x()-1 && p.tail.y() == newHead.y()-1,
-		p.tail.x() == newHead.x()+1 && p.tail.y() == newHead.y()-1,
-		p.tail.x() == newHead.x()-1 && p.tail.y() == newHead.y()+1:
-		p.head = newHead
+		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y(),
+		p.knots[knot+1].x() == newHead.x()+1 && p.knots[knot+1].y() == newHead.y(),
+		p.knots[knot+1].x() == newHead.x()-1 && p.knots[knot+1].y() == newHead.y(),
+		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()+1,
+		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()-1,
+		p.knots[knot+1].x() == newHead.x()+1 && p.knots[knot+1].y() == newHead.y()+1,
+		p.knots[knot+1].x() == newHead.x()-1 && p.knots[knot+1].y() == newHead.y()-1,
+		p.knots[knot+1].x() == newHead.x()+1 && p.knots[knot+1].y() == newHead.y()-1,
+		p.knots[knot+1].x() == newHead.x()-1 && p.knots[knot+1].y() == newHead.y()+1:
 	case
-		p.tail.x() == newHead.x()-2 && p.tail.y() == newHead.y():
-		p.head = newHead
-		p.tail = keyT{newHead.x() - 1, newHead.y()}
+		p.knots[knot+1].x() == newHead.x()-2 && p.knots[knot+1].y() == newHead.y():
+		p.knots[knot+1] = keyT{newHead.x() - 1, newHead.y()}
 	case
-		p.tail.x() == newHead.x()+2 && p.tail.y() == newHead.y():
-		p.head = newHead
-		p.tail = keyT{newHead.x() + 1, newHead.y()}
+		p.knots[knot+1].x() == newHead.x()+2 && p.knots[knot+1].y() == newHead.y():
+		p.knots[knot+1] = keyT{newHead.x() + 1, newHead.y()}
 	case
-		p.tail.x() == newHead.x() && p.tail.y() == newHead.y()-2:
-		p.head = newHead
-		p.tail = keyT{newHead.x(), newHead.y() - 1}
+		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()-2:
+		p.knots[knot+1] = keyT{newHead.x(), newHead.y() - 1}
 	case
-		p.tail.x() == newHead.x() && p.tail.y() == newHead.y()+2:
-		p.head = newHead
-		p.tail = keyT{newHead.x(), newHead.y() + 1}
+		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()+2:
+		p.knots[knot+1] = keyT{newHead.x(), newHead.y() + 1}
 
 	case
-		p.tail.y() == newHead.y()+2:
-		p.head = newHead
-		p.tail = keyT{newHead.x(), newHead.y() + 1}
+		p.knots[knot+1].y() == newHead.y()+2:
+		p.knots[knot+1] = keyT{newHead.x(), newHead.y() + 1}
 	case
-		p.tail.y() == newHead.y()-2:
-		p.head = newHead
-		p.tail = keyT{newHead.x(), newHead.y() - 1}
+		p.knots[knot+1].y() == newHead.y()-2:
+		p.knots[knot+1] = keyT{newHead.x(), newHead.y() - 1}
 
 	case
-		p.tail.x() == newHead.x()+2:
-		p.head = newHead
-		p.tail = keyT{newHead.x() + 1, newHead.y()}
+		p.knots[knot+1].x() == newHead.x()+2:
+		p.knots[knot+1] = keyT{newHead.x() + 1, newHead.y()}
 	case
-		p.tail.x() == newHead.x()-2:
-		p.head = newHead
-		p.tail = keyT{newHead.x() - 1, newHead.y()}
+		p.knots[knot+1].x() == newHead.x()-2:
+		p.knots[knot+1] = keyT{newHead.x() - 1, newHead.y()}
+
+	// case // ???
+	// 	p.knots[knot+1].x() == newHead.x()+3:
+	// 	p.knots[knot+1] = keyT{newHead.x() + 2, newHead.y()}
+	// case
+	// 	p.knots[knot+1].x() == newHead.x()-3:
+	// 	p.knots[knot+1] = keyT{newHead.x() - 2, newHead.y()}
+	//
+	// case // ???
+	// 	p.knots[knot+1].x() == newHead.x()+4:
+	// 	p.knots[knot+1] = keyT{newHead.x() + 3, newHead.y()}
+	// case
+	// 	p.knots[knot+1].x() == newHead.x()-4:
+	// 	p.knots[knot+1] = keyT{newHead.x() - 3, newHead.y()}
 
 	default:
-		log.Fatalf("Unhandled case: H(%v) - T(%v)", newHead, p.tail)
+		log.Fatalf("Unhandled case: H(%v) - T(%v)", newHead, p.knots[knot+1])
 	}
 }
