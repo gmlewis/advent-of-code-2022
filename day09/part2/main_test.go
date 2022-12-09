@@ -7,8 +7,10 @@ import (
 )
 
 func TestExample(t *testing.T) {
-	want := "Solution: 13\n"
+	want := "Solution: 1\n"
 	test.Runner(t, example1, want, process, &printf)
+	want = "Solution: 36\n"
+	test.Runner(t, example2, want, process, &printf)
 }
 
 func BenchmarkExample(b *testing.B) {

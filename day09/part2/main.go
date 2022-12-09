@@ -30,8 +30,6 @@ func process(filename string) {
 	puz := puzT{visited: map[keyT]bool{}}
 	puz.makeMoves(lines)
 
-	// 2600 is too low.
-
 	printf("Solution: %v\n", len(puz.visited))
 }
 
@@ -68,6 +66,7 @@ func (p *puzT) makeMoves(moves []string) {
 				p.move(knot, dx, dy)
 			}
 			p.visited[p.knots[numKnots-1]] = true
+			// log.Printf("after move %q - puz:\n%v", move, p)
 		}
 	}
 }
@@ -92,47 +91,128 @@ func (p *puzT) move(knot, dx, dy int) {
 		tail.x() == newHead.x()+1 && tail.y() == newHead.y()-1,
 		tail.x() == newHead.x()-1 && tail.y() == newHead.y()+1:
 	case
-		tail.x() == newHead.x()-2 && tail.y() == newHead.y():
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y()+1,
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y(),
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y()-1:
 		*tail = keyT{newHead.x() - 1, newHead.y()}
 	case
-		tail.x() == newHead.x()+2 && tail.y() == newHead.y():
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y()+1,
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y(),
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y()-1:
 		*tail = keyT{newHead.x() + 1, newHead.y()}
 	case
-		tail.x() == newHead.x() && tail.y() == newHead.y()-2:
+		tail.x() == newHead.x()+1 && tail.y() == newHead.y()-2,
+		tail.x() == newHead.x() && tail.y() == newHead.y()-2,
+		tail.x() == newHead.x()-1 && tail.y() == newHead.y()-2:
 		*tail = keyT{newHead.x(), newHead.y() - 1}
 	case
-		tail.x() == newHead.x() && tail.y() == newHead.y()+2:
+		tail.x() == newHead.x()+1 && tail.y() == newHead.y()+2,
+		tail.x() == newHead.x() && tail.y() == newHead.y()+2,
+		tail.x() == newHead.x()-1 && tail.y() == newHead.y()+2:
 		*tail = keyT{newHead.x(), newHead.y() + 1}
 
 	case
-		tail.y() == newHead.y()+2:
-		*tail = keyT{newHead.x(), newHead.y() + 1}
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y()-2:
+		*tail = keyT{newHead.x() - 1, newHead.y() - 1}
 	case
-		tail.y() == newHead.y()-2:
-		*tail = keyT{newHead.x(), newHead.y() - 1}
-
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y()+2:
+		*tail = keyT{newHead.x() - 1, newHead.y() + 1}
 	case
-		tail.x() == newHead.x()+2:
-		*tail = keyT{newHead.x() + 1, newHead.y()}
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y()-2:
+		*tail = keyT{newHead.x() + 1, newHead.y() - 1}
 	case
-		tail.x() == newHead.x()-2:
-		*tail = keyT{newHead.x() - 1, newHead.y()}
-
-	// case // ???
-	// 	tail.x() == newHead.x()+3:
-	// 	tail = keyT{newHead.x() + 2, newHead.y()}
-	// case
-	// 	tail.x() == newHead.x()-3:
-	// 	tail = keyT{newHead.x() - 2, newHead.y()}
-	//
-	// case // ???
-	// 	tail.x() == newHead.x()+4:
-	// 	tail = keyT{newHead.x() + 3, newHead.y()}
-	// case
-	// 	tail.x() == newHead.x()-4:
-	// 	tail = keyT{newHead.x() - 3, newHead.y()}
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y()+2:
+		*tail = keyT{newHead.x() + 1, newHead.y() + 1}
+	case
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y()-2:
+		*tail = keyT{newHead.x() - 1, newHead.y() - 1}
+	case
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y()-2:
+		*tail = keyT{newHead.x() + 1, newHead.y() - 1}
+	case
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y()+2:
+		*tail = keyT{newHead.x() - 1, newHead.y() + 1}
+	case
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y()+2:
+		*tail = keyT{newHead.x() + 1, newHead.y() + 1}
 
 	default:
 		log.Fatalf("Unhandled case: H(%v) - T(%v)", newHead, tail)
 	}
 }
+
+func (p *puzT) String() string {
+	knot := func(x, y int) string {
+		key := keyT{x, y}
+		for i, k := range p.knots {
+			if k != key {
+				continue
+			}
+			if i == 0 {
+				return "H"
+			}
+			return fmt.Sprintf("%v", i)
+		}
+		return "."
+	}
+
+	var lines []string
+	bounds := p.findBounds()
+	for y := bounds[0].y(); y <= bounds[1].y(); y++ {
+		var line string
+		for x := bounds[0].x(); x <= bounds[1].x(); x++ {
+			line += knot(x, y)
+		}
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (p *puzT) findBounds() [2]keyT {
+	bounds := [2]keyT{}
+	for _, key := range p.knots {
+		if key.x() < bounds[0].x() {
+			bounds[0][0] = key.x()
+		}
+		if key.y() < bounds[0].y() {
+			bounds[0][1] = key.y()
+		}
+		if key.x() > bounds[1].x() {
+			bounds[1][0] = key.x()
+		}
+		if key.y() > bounds[1].y() {
+			bounds[1][1] = key.y()
+		}
+	}
+	return bounds
+}
+
+/*
+2022/12/09 13:50:21 after move "U 4" - puz:
+....H
+4321.
+2022/12/09 13:50:21 after move "U 4" - puz:
+....H
+.4321
+5....
+2022/12/09 13:50:21 after move "U 4" - puz:
+....H
+....1
+.432.
+5....
+2022/12/09 13:50:21 after move "U 4" - puz:
+....H
+....1
+..432
+.65..
+7....
+
+SHOULD BE:
+
+....H
+....1
+..432
+.5...
+6....  (6 covers 7, 8, 9, s)
+
+*/
