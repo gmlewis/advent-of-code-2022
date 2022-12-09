@@ -78,60 +78,61 @@ func (p *puzT) move(knot, dx, dy int) {
 		newHead = keyT{newHead.x() + dx, newHead.y() + dy}
 		p.knots[0] = newHead
 	}
+	tail := &p.knots[knot+1]
 	switch {
 	// just move the head.
 	case
-		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y(),
-		p.knots[knot+1].x() == newHead.x()+1 && p.knots[knot+1].y() == newHead.y(),
-		p.knots[knot+1].x() == newHead.x()-1 && p.knots[knot+1].y() == newHead.y(),
-		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()+1,
-		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()-1,
-		p.knots[knot+1].x() == newHead.x()+1 && p.knots[knot+1].y() == newHead.y()+1,
-		p.knots[knot+1].x() == newHead.x()-1 && p.knots[knot+1].y() == newHead.y()-1,
-		p.knots[knot+1].x() == newHead.x()+1 && p.knots[knot+1].y() == newHead.y()-1,
-		p.knots[knot+1].x() == newHead.x()-1 && p.knots[knot+1].y() == newHead.y()+1:
+		tail.x() == newHead.x() && tail.y() == newHead.y(),
+		tail.x() == newHead.x()+1 && tail.y() == newHead.y(),
+		tail.x() == newHead.x()-1 && tail.y() == newHead.y(),
+		tail.x() == newHead.x() && tail.y() == newHead.y()+1,
+		tail.x() == newHead.x() && tail.y() == newHead.y()-1,
+		tail.x() == newHead.x()+1 && tail.y() == newHead.y()+1,
+		tail.x() == newHead.x()-1 && tail.y() == newHead.y()-1,
+		tail.x() == newHead.x()+1 && tail.y() == newHead.y()-1,
+		tail.x() == newHead.x()-1 && tail.y() == newHead.y()+1:
 	case
-		p.knots[knot+1].x() == newHead.x()-2 && p.knots[knot+1].y() == newHead.y():
-		p.knots[knot+1] = keyT{newHead.x() - 1, newHead.y()}
+		tail.x() == newHead.x()-2 && tail.y() == newHead.y():
+		*tail = keyT{newHead.x() - 1, newHead.y()}
 	case
-		p.knots[knot+1].x() == newHead.x()+2 && p.knots[knot+1].y() == newHead.y():
-		p.knots[knot+1] = keyT{newHead.x() + 1, newHead.y()}
+		tail.x() == newHead.x()+2 && tail.y() == newHead.y():
+		*tail = keyT{newHead.x() + 1, newHead.y()}
 	case
-		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()-2:
-		p.knots[knot+1] = keyT{newHead.x(), newHead.y() - 1}
+		tail.x() == newHead.x() && tail.y() == newHead.y()-2:
+		*tail = keyT{newHead.x(), newHead.y() - 1}
 	case
-		p.knots[knot+1].x() == newHead.x() && p.knots[knot+1].y() == newHead.y()+2:
-		p.knots[knot+1] = keyT{newHead.x(), newHead.y() + 1}
+		tail.x() == newHead.x() && tail.y() == newHead.y()+2:
+		*tail = keyT{newHead.x(), newHead.y() + 1}
 
 	case
-		p.knots[knot+1].y() == newHead.y()+2:
-		p.knots[knot+1] = keyT{newHead.x(), newHead.y() + 1}
+		tail.y() == newHead.y()+2:
+		*tail = keyT{newHead.x(), newHead.y() + 1}
 	case
-		p.knots[knot+1].y() == newHead.y()-2:
-		p.knots[knot+1] = keyT{newHead.x(), newHead.y() - 1}
+		tail.y() == newHead.y()-2:
+		*tail = keyT{newHead.x(), newHead.y() - 1}
 
 	case
-		p.knots[knot+1].x() == newHead.x()+2:
-		p.knots[knot+1] = keyT{newHead.x() + 1, newHead.y()}
+		tail.x() == newHead.x()+2:
+		*tail = keyT{newHead.x() + 1, newHead.y()}
 	case
-		p.knots[knot+1].x() == newHead.x()-2:
-		p.knots[knot+1] = keyT{newHead.x() - 1, newHead.y()}
+		tail.x() == newHead.x()-2:
+		*tail = keyT{newHead.x() - 1, newHead.y()}
 
 	// case // ???
-	// 	p.knots[knot+1].x() == newHead.x()+3:
-	// 	p.knots[knot+1] = keyT{newHead.x() + 2, newHead.y()}
+	// 	tail.x() == newHead.x()+3:
+	// 	tail = keyT{newHead.x() + 2, newHead.y()}
 	// case
-	// 	p.knots[knot+1].x() == newHead.x()-3:
-	// 	p.knots[knot+1] = keyT{newHead.x() - 2, newHead.y()}
+	// 	tail.x() == newHead.x()-3:
+	// 	tail = keyT{newHead.x() - 2, newHead.y()}
 	//
 	// case // ???
-	// 	p.knots[knot+1].x() == newHead.x()+4:
-	// 	p.knots[knot+1] = keyT{newHead.x() + 3, newHead.y()}
+	// 	tail.x() == newHead.x()+4:
+	// 	tail = keyT{newHead.x() + 3, newHead.y()}
 	// case
-	// 	p.knots[knot+1].x() == newHead.x()-4:
-	// 	p.knots[knot+1] = keyT{newHead.x() - 3, newHead.y()}
+	// 	tail.x() == newHead.x()-4:
+	// 	tail = keyT{newHead.x() - 3, newHead.y()}
 
 	default:
-		log.Fatalf("Unhandled case: H(%v) - T(%v)", newHead, p.knots[knot+1])
+		log.Fatalf("Unhandled case: H(%v) - T(%v)", newHead, tail)
 	}
 }
