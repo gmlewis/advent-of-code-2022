@@ -63,15 +63,17 @@ func (p *puzT) makeMoves(moves []string) {
 		}
 		for i := 0; i < d; i++ {
 			for knot := 0; knot < numKnots-1; knot++ {
-				p.move(knot, dx, dy)
+				if !p.move(knot, dx, dy) {
+					break
+				}
 			}
 			p.visited[p.knots[numKnots-1]] = true
-			// log.Printf("after move %q - puz:\n%v", move, p)
+			// log.Printf("after move %q #%v - puz:\n%v", move, i+1, p)
 		}
 	}
 }
 
-func (p *puzT) move(knot, dx, dy int) {
+func (p *puzT) move(knot, dx, dy int) (changed bool) {
 	newHead := p.knots[knot]
 	if knot == 0 {
 		newHead = keyT{newHead.x() + dx, newHead.y() + dy}
@@ -90,55 +92,69 @@ func (p *puzT) move(knot, dx, dy int) {
 		tail.x() == newHead.x()-1 && tail.y() == newHead.y()-1,
 		tail.x() == newHead.x()+1 && tail.y() == newHead.y()-1,
 		tail.x() == newHead.x()-1 && tail.y() == newHead.y()+1:
+		return knot == 0
 	case
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y()+1,
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y(),
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y()-1:
 		*tail = keyT{newHead.x() - 1, newHead.y()}
+		return true
 	case
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y()+1,
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y(),
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y()-1:
 		*tail = keyT{newHead.x() + 1, newHead.y()}
+		return true
 	case
 		tail.x() == newHead.x()+1 && tail.y() == newHead.y()-2,
 		tail.x() == newHead.x() && tail.y() == newHead.y()-2,
 		tail.x() == newHead.x()-1 && tail.y() == newHead.y()-2:
 		*tail = keyT{newHead.x(), newHead.y() - 1}
+		return true
 	case
 		tail.x() == newHead.x()+1 && tail.y() == newHead.y()+2,
 		tail.x() == newHead.x() && tail.y() == newHead.y()+2,
 		tail.x() == newHead.x()-1 && tail.y() == newHead.y()+2:
 		*tail = keyT{newHead.x(), newHead.y() + 1}
+		return true
 
 	case
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y()-2:
 		*tail = keyT{newHead.x() - 1, newHead.y() - 1}
+		return true
 	case
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y()+2:
 		*tail = keyT{newHead.x() - 1, newHead.y() + 1}
+		return true
 	case
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y()-2:
 		*tail = keyT{newHead.x() + 1, newHead.y() - 1}
+		return true
 	case
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y()+2:
 		*tail = keyT{newHead.x() + 1, newHead.y() + 1}
+		return true
 	case
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y()-2:
 		*tail = keyT{newHead.x() - 1, newHead.y() - 1}
+		return true
 	case
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y()-2:
 		*tail = keyT{newHead.x() + 1, newHead.y() - 1}
+		return true
 	case
 		tail.x() == newHead.x()-2 && tail.y() == newHead.y()+2:
 		*tail = keyT{newHead.x() - 1, newHead.y() + 1}
+		return true
 	case
 		tail.x() == newHead.x()+2 && tail.y() == newHead.y()+2:
 		*tail = keyT{newHead.x() + 1, newHead.y() + 1}
+		return true
 
 	default:
 		log.Fatalf("Unhandled case: H(%v) - T(%v)", newHead, tail)
 	}
+	return false
 }
 
 func (p *puzT) String() string {
