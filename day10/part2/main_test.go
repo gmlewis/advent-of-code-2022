@@ -7,7 +7,15 @@ import (
 )
 
 func TestExample(t *testing.T) {
-	want := "Solution: 0\n"
+	want := `Solution:
+##  ##  ##  ##  ##  ##  ##  ##  ##  ##  
+###   ###   ###   ###   ###   ###   ### 
+####    ####    ####    ####    ####    
+#####     #####     #####     #####     
+######      ######      ######      ####
+#######       #######       #######     
+  
+`
 	test.Runner(t, example1, want, process, &printf)
 }
 
@@ -20,11 +28,6 @@ func BenchmarkInput(b *testing.B) {
 }
 
 var example1 = `
-noop
-addx 3
-addx -5
-
-
 addx 15
 addx -11
 addx 6
