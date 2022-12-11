@@ -77,7 +77,7 @@ func (p *puzT) simulate(rounds int) {
 		if i == 0 || i == 19 || (i+1)%1000 == 0 {
 			fmt.Printf("\n== After round %v ==\n", i+1)
 			for j, m := range p.monkies {
-				log.Printf("Monkey %v inspected items %v times.\n", j, m.inspections)
+				fmt.Printf("Monkey %v inspected items %v times.\n", j, m.inspections)
 			}
 		}
 	}
