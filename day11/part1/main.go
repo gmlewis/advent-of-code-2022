@@ -45,8 +45,8 @@ type opFunc func(int) int
 type throwFunc func(newValue int) int
 
 func (p *puzT) round() {
-	for i, m := range p.monkies {
-		log.Printf("Monkey %v:", i)
+	for _, m := range p.monkies {
+		// log.Printf("Monkey %v:", i)
 		m.turn(p)
 	}
 }
@@ -54,13 +54,13 @@ func (p *puzT) round() {
 func (m *monkeyT) turn(p *puzT) {
 	for _, item := range m.items {
 		m.inspections++
-		log.Printf("  Monkey inspects an item with a worry level of %v.", item)
+		// log.Printf("  Monkey inspects an item with a worry level of %v.", item)
 		wl := m.op(item)
-		log.Printf("    Worry level is now %v.", wl)
+		// log.Printf("    Worry level is now %v.", wl)
 		wl /= 3
-		log.Printf("    Monkey gets bored with item. Worry level is divided by 3 to %v.", wl)
+		// log.Printf("    Monkey gets bored with item. Worry level is divided by 3 to %v.", wl)
 		toMonkey := m.throw(wl)
-		log.Printf("    Item with worry level %v is thrown to monkey %v.", wl, toMonkey)
+		// log.Printf("    Item with worry level %v is thrown to monkey %v.", wl, toMonkey)
 		p.monkies[toMonkey].items = append(p.monkies[toMonkey].items, wl)
 	}
 	m.items = nil
