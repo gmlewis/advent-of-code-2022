@@ -6,12 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/big"
 	"sort"
 	"strings"
 
 	. "github.com/gmlewis/advent-of-code-2021/enum"
 	"github.com/gmlewis/advent-of-code-2021/must"
+	big "github.com/ncw/gmp"
 )
 
 var logf = log.Printf
@@ -32,6 +32,10 @@ func process(filename string) {
 
 	printf("Solution: %v\n", puz.solution())
 }
+
+var (
+	tmpInt big.Int
+)
 
 type puzT struct {
 	monkies []*monkeyT
@@ -144,10 +148,8 @@ func (m *monkeyT) parseTest(s []string) {
 	trueMonkey := must.Atoi(s[1][ii:])
 	ii = 1 + strings.LastIndex(s[2], " ")
 	falseMonkey := must.Atoi(s[2][ii:])
-	zero := big.NewInt(0)
 	m.throw = func(newValue numType) int {
-		result := big.NewInt(0)
-		if result.Mod(newValue, v).Cmp(zero) == 0 {
+		if tmpInt.Mod(newValue, v).CmpInt32(0) == 0 {
 			return trueMonkey
 		}
 		return falseMonkey
