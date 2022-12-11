@@ -11,7 +11,6 @@ import (
 
 	. "github.com/gmlewis/advent-of-code-2021/enum"
 	"github.com/gmlewis/advent-of-code-2021/must"
-	big "github.com/ncw/gmp"
 )
 
 var logf = log.Printf
@@ -28,17 +27,15 @@ func process(filename string) {
 	buf := must.ReadSplitFile(filename, "\n\n")
 
 	puz := parsePuz(buf)
+	// log.Printf("lcm=%v", puz.lcm)
 	puz.simulate(10000)
 
 	printf("Solution: %v\n", puz.solution())
 }
 
-var (
-	tmpInt big.Int
-)
-
 type puzT struct {
 	monkies []*monkeyT
+	lcm     int
 }
 type monkeyT struct {
 	inspections int
@@ -48,7 +45,7 @@ type monkeyT struct {
 }
 type opFunc func(numType) numType
 type throwFunc func(newValue numType) int
-type numType = *big.Int
+type numType = int
 
 func (p *puzT) round() {
 	for _, m := range p.monkies {
@@ -62,6 +59,9 @@ func (m *monkeyT) turn(p *puzT) {
 		m.inspections++
 		// log.Printf("  Monkey inspects an item with a worry level of %v.", item)
 		wl := m.op(item)
+		if wl > p.lcm {
+			wl = wl % p.lcm
+		}
 		// log.Printf("    Worry level is now %v.", wl)
 		// log.Printf("    Monkey gets bored with item. Worry level is divided by 3 to %v.", wl)
 		toMonkey := m.throw(wl)
@@ -74,35 +74,34 @@ func (m *monkeyT) turn(p *puzT) {
 func (p *puzT) simulate(rounds int) {
 	for i := 0; i < rounds; i++ {
 		p.round()
-		if i == 0 || i == 19 || (i+1)%1000 == 0 {
-			fmt.Printf("\n== After round %v ==\n", i+1)
-			for j, m := range p.monkies {
-				fmt.Printf("Monkey %v inspected items %v times.\n", j, m.inspections)
-			}
-		}
+		// if i == 0 || i == 19 || (i+1)%1000 == 0 {
+		// 	fmt.Printf("\n== After round %v ==\n", i+1)
+		// 	for j, m := range p.monkies {
+		// 		fmt.Printf("Monkey %v inspected items %v times.\n", j, m.inspections)
+		// 	}
+		// }
 	}
 }
 
-func (p *puzT) solution() numType {
+func (p *puzT) solution() int64 {
 	n := len(p.monkies)
 	inspections := make([]int, 0, n)
 	for _, m := range p.monkies {
 		inspections = append(inspections, m.inspections)
 	}
 	sort.Ints(inspections)
-	result := big.NewInt(0)
-	return result.Mul(big.NewInt(int64(inspections[n-1])), big.NewInt(int64(inspections[n-2])))
+	return int64(inspections[n-1]) * int64(inspections[n-2])
 }
 
 func parsePuz(monkeySections []string) *puzT {
-	puz := &puzT{monkies: make([]*monkeyT, 0, len(monkeySections))}
+	puz := &puzT{lcm: 1, monkies: make([]*monkeyT, 0, len(monkeySections))}
 	for _, ms := range monkeySections {
 		parts := strings.Split(ms, "\n")
 		m := &monkeyT{}
 		puz.monkies = append(puz.monkies, m)
 		m.parseItems(parts[1])
 		m.parseOperation(parts[2])
-		m.parseTest(parts[3:])
+		m.parseTest(puz, parts[3:])
 	}
 	return puz
 }
@@ -110,7 +109,7 @@ func parsePuz(monkeySections []string) *puzT {
 func (m *monkeyT) parseItems(s string) {
 	ii := 2 + strings.Index(s, ": ")
 	m.items = Map(
-		strings.Split(strings.Replace(s[ii:], " ", "", -11), ","), atoBigInt)
+		strings.Split(strings.Replace(s[ii:], " ", "", -11), ","), must.Atoi)
 }
 
 func (m *monkeyT) parseOperation(s string) {
@@ -118,12 +117,12 @@ func (m *monkeyT) parseOperation(s string) {
 	parts := strings.Split(s[ii:], " ")
 	var value numType
 	if parts[1] != "old" {
-		value = atoBigInt(parts[1])
+		value = must.Atoi(parts[1])
 		switch parts[0] {
 		case "+":
-			m.op = func(old numType) numType { return old.Add(old, value) }
+			m.op = func(old numType) numType { return old + value }
 		case "*":
-			m.op = func(old numType) numType { return old.Mul(old, value) }
+			m.op = func(old numType) numType { return old * value }
 		default:
 			log.Fatalf("unable to parse: %v", s)
 		}
@@ -132,31 +131,27 @@ func (m *monkeyT) parseOperation(s string) {
 
 	switch parts[0] {
 	case "+":
-		m.op = func(old numType) numType { return old.Add(old, old) }
+		m.op = func(old numType) numType { return old + old }
 	case "*":
-		m.op = func(old numType) numType { return old.Mul(old, old) }
+		m.op = func(old numType) numType { return old * old }
 	default:
 		log.Fatalf("unable to parse: %v", s)
 	}
 }
 
-func (m *monkeyT) parseTest(s []string) {
+func (m *monkeyT) parseTest(p *puzT, s []string) {
 	const str = "divisible by "
 	ii := len(str) + strings.Index(s[0], str)
-	v := big.NewInt(must.Atoi64(s[0][ii:]))
+	v := must.Atoi(s[0][ii:])
+	p.lcm *= v
 	ii = 1 + strings.LastIndex(s[1], " ")
 	trueMonkey := must.Atoi(s[1][ii:])
 	ii = 1 + strings.LastIndex(s[2], " ")
 	falseMonkey := must.Atoi(s[2][ii:])
 	m.throw = func(newValue numType) int {
-		if tmpInt.Mod(newValue, v).CmpInt32(0) == 0 {
+		if newValue%v == 0 {
 			return trueMonkey
 		}
 		return falseMonkey
 	}
-}
-
-func atoBigInt(s string) *big.Int {
-	v := must.Atoi64(s)
-	return big.NewInt(v)
 }
