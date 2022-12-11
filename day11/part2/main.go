@@ -121,9 +121,9 @@ func (m *monkeyT) parseOperation(s string) {
 		value = atoBigInt(parts[1])
 		switch parts[0] {
 		case "+":
-			m.op = func(old numType) numType { return add(old, value) }
+			m.op = func(old numType) numType { return old.Add(old, value) }
 		case "*":
-			m.op = func(old numType) numType { return mul(old, value) }
+			m.op = func(old numType) numType { return old.Mul(old, value) }
 		default:
 			log.Fatalf("unable to parse: %v", s)
 		}
@@ -132,9 +132,9 @@ func (m *monkeyT) parseOperation(s string) {
 
 	switch parts[0] {
 	case "+":
-		m.op = func(old numType) numType { return add(old, old) }
+		m.op = func(old numType) numType { return old.Add(old, old) }
 	case "*":
-		m.op = func(old numType) numType { return mul(old, old) }
+		m.op = func(old numType) numType { return old.Mul(old, old) }
 	default:
 		log.Fatalf("unable to parse: %v", s)
 	}
@@ -159,14 +159,4 @@ func (m *monkeyT) parseTest(s []string) {
 func atoBigInt(s string) *big.Int {
 	v := must.Atoi64(s)
 	return big.NewInt(v)
-}
-
-func add(a, b numType) numType {
-	result := big.NewInt(0)
-	return result.Add(a, b)
-}
-
-func mul(a, b numType) numType {
-	result := big.NewInt(0)
-	return result.Mul(a, b)
 }
