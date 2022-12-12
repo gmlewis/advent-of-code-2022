@@ -27,10 +27,16 @@ func process(filename string) {
 	lines := must.ReadFileLines(filename)
 
 	puz := parseLines(lines)
-	// log.Printf("start=%v, end=%v", puz.start, puz.end)
-	distances := algorithm.Dijkstra[keyT, int](puz, puz.start, &puz.end, math.MaxInt32)
 
-	printf("Solution: %v\n", distances[puz.end])
+	bestDist := math.MaxInt32
+	for _, start := range puz.possibleStarts {
+		distances := algorithm.Dijkstra[keyT, int](puz, start, &puz.end, math.MaxInt32)
+		if distances[puz.end] < bestDist {
+			bestDist = distances[puz.end]
+		}
+	}
+
+	printf("Solution: %v\n", bestDist)
 }
 
 // puzT implements the algorithm.Graph interface.
@@ -42,9 +48,9 @@ func (k keyT) x() int { return k[0] }
 func (k keyT) y() int { return k[1] }
 
 type puzT struct {
-	start keyT
-	end   keyT
-	grid  map[keyT]rune
+	possibleStarts []keyT
+	end            keyT
+	grid           map[keyT]rune
 }
 
 func parseLines(lines []string) *puzT {
@@ -58,8 +64,8 @@ func (p *puzT) parseLine(y int, line string, acc map[keyT]rune) map[keyT]rune {
 		key := keyT{x, y}
 		acc[key] = r
 		switch r {
-		case 'S':
-			p.start = key
+		case 'S', 'a':
+			p.possibleStarts = append(p.possibleStarts, key)
 			acc[key] = 'a'
 		case 'E':
 			p.end = key
