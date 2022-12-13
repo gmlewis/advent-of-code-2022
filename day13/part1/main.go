@@ -22,7 +22,7 @@ func main() {
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
+	pairs := must.ReadSplitFile(filename, "\n\n")
 
-	printf("Solution: %v\n", len(buf))
+	printf("Solution: %v\n", len(pairs))
 }
