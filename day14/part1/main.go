@@ -28,8 +28,9 @@ func process(filename string) {
 	lines := must.ReadFileLines(filename)
 
 	puz := parseLines(lines)
+	grains := puz.dropGrains()
 
-	printf("Solution: %v\n", len(puz.grid))
+	printf("Solution: %v\n", grains)
 }
 
 type keyT [2]int
@@ -42,6 +43,45 @@ type puzT struct {
 	xmax int
 	ymax int
 	grid map[keyT]rune
+}
+
+func (p *puzT) dropGrains() int {
+	var grains int
+	for p.dropOneGrain() {
+		grains++
+	}
+	return grains
+}
+
+func (p *puzT) dropOneGrain() bool {
+	key := keyT{xStart, 0}
+	dKey := func() keyT { return keyT{key.x(), key.y() + 1} }
+	dlKey := func() keyT { return keyT{key.x() - 1, key.y() + 1} }
+	drKey := func() keyT { return keyT{key.x() + 1, key.y() + 1} }
+	down := func() rune { return p.grid[dKey()] }
+	downLeft := func() rune { return p.grid[dlKey()] }
+	downRight := func() rune { return p.grid[drKey()] }
+
+	for {
+		d := down()
+		dl := downLeft()
+		dr := downRight()
+		switch {
+		case key.x() < p.xmin, key.x() > p.xmax, key.y() > p.ymax:
+			return false
+		case d == 0:
+			key = dKey()
+		case dl != 0 && dr != 0:
+			p.grid[key] = 'o'
+			return true
+		case dl == 0:
+			key = dlKey()
+		case dl != 0 && dr == 0:
+			key = drKey()
+		default:
+			log.Fatalf("unhandled case: key=%v, d=%v, dl=%v, dr=%v", key, d, dl, dr)
+		}
+	}
 }
 
 func parseLines(lines []string) *puzT {
@@ -80,5 +120,25 @@ func (p *puzT) drawRocks(rocks []string) {
 	}
 }
 
+func cmp(v int) int {
+	switch {
+	case v < 0:
+		return -1
+	case v > 0:
+		return 1
+	default:
+		return 0
+	}
+}
+
 func (p *puzT) drawLine(from, to keyT, r rune) {
+	dx := cmp(to.x() - from.x())
+	dy := cmp(to.y() - from.y())
+
+	p.grid[to] = r
+	for from != to {
+		p.grid[from] = r
+		from[0] += dx
+		from[1] += dy
+	}
 }
