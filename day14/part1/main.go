@@ -22,7 +22,16 @@ func main() {
 
 func process(filename string) {
 	logf("Processing %v ...", filename)
-	buf := must.ReadFile(filename)
+	lines := must.ReadFileLines(filename)
 
-	printf("Solution: %v\n", len(buf))
+	printf("Solution: %v\n", len(lines))
+}
+
+type keyT [2]int
+
+func (k keyT) x() int { return k[0] }
+func (k keyT) y() int { return k[1] }
+
+type puzT struct {
+	grid map[keyT]rune
 }
