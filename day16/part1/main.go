@@ -31,14 +31,84 @@ func process(filename string) {
 	lines := must.ReadFileLines(filename)
 
 	puz := parsePuzzle(lines)
-	// distances := algorithm.Dijkstra[string, int](puz, "AA", nil, math.MaxInt)
-	// log.Printf("distances: %#v", distances)
+
+	for puz.elapsedTime < maxTime {
+		puz = puz.bestMove()
+		log.Printf("puz=%#v", puz)
+	}
+
 	// maxKey, maxDistance := algorithm.Max(distances, math.MaxInt)
 	// log.Printf("maxKey=%v, maxDistance=%v", maxKey, maxDistance)
 
-	solution := puz.maxPressure()
+	// solution := puz.maxPressure()
 
-	printf("Solution: %v\n", solution.pressure(maxTime))
+	printf("Solution: %v\n", puz.pressure(maxTime))
+}
+
+func (p *puzT) bestMove() *puzT {
+	if p.elapsedTime >= maxTime {
+		return p
+	}
+
+	name := p.moves[len(p.moves)-1]
+	// valve := p.valves[name]
+
+	distances := algorithm.Dijkstra[string, int](p, name, nil, math.MaxInt)
+	log.Printf("distances from %q: %#v", name, distances)
+
+	needToOpen := Filter(maps.Keys(p.valves), func(n string) bool { return p.valves[n].flowRate > 0 && p.valves[n].openTime >= maxTime })
+	log.Printf("valves that still need to be opened: %+v", needToOpen)
+
+	if len(needToOpen) == 0 {
+		p.elapsedTime++
+		return p
+	}
+
+	var bestValve string
+	var bestPressure int
+	for _, n := range needToOpen {
+		pathTo := algorithm.PathTo[string, int](p, name, n, math.MaxInt)
+		log.Printf("Path from %q to %q: %+v", name, n, pathTo)
+
+		pressure := p.potentialPressureIfGoTo(name, n, pathTo)
+		if pressure == 0 {
+			continue
+		}
+
+		log.Printf("potential added pressure if %v were next: %v", n, pressure)
+		if bestValve == "" || bestPressure < pressure {
+			bestValve = n
+			bestPressure = pressure
+		}
+	}
+	log.Printf("bestValve=%q, bestPressure=%v", bestValve, bestPressure)
+
+	if bestValve == "" {
+		p.elapsedTime++
+		return p
+	}
+
+	newP := p.moveTo(bestValve)
+	newP.openValve(bestValve)
+
+	return newP
+}
+
+func (p *puzT) potentialPressureIfGoTo(from, to string, pathTo map[string]int) int {
+	minutes := pathTo[to] * 2
+
+	// for k, v := range pathTo {
+	// 	if k == from {
+	// 		continue
+	// 	}
+	// }
+
+	totalFlowTime := maxTime - 1 - minutes - p.elapsedTime
+	if totalFlowTime <= 0 {
+		return 0
+	}
+	pressure := totalFlowTime * p.valves[to].flowRate
+	return pressure
 }
 
 const (
@@ -93,6 +163,15 @@ func (p *puzT) maxPressure() *puzT {
 	}
 
 	return bestPuz
+}
+
+func (p *puzT) openValve(name string) {
+	valve := p.valves[name]
+	valve.openTime = p.elapsedTime
+	p.opened[name] = true
+	// p.printSummary()
+	// fmt.Printf("You open valve %v.\n", name)
+	p.elapsedTime++
 }
 
 func (p *puzT) moveTo(name string) *puzT {
