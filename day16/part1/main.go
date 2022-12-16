@@ -8,10 +8,12 @@ import (
 	"log"
 	"math"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/gmlewis/advent-of-code-2021/algorithm"
 	. "github.com/gmlewis/advent-of-code-2021/enum"
+	"github.com/gmlewis/advent-of-code-2021/maps"
 	"github.com/gmlewis/advent-of-code-2021/must"
 )
 
@@ -36,13 +38,17 @@ func process(filename string) {
 
 	solution := puz.maxPressure()
 
-	printf("Solution: %v\n", solution.pressure(30))
+	printf("Solution: %v\n", solution.pressure(maxTime))
 }
+
+const (
+	maxTime = 30
+)
 
 type puzT struct {
 	elapsedTime int
 	moves       []string
-	visited     map[string]bool
+	opened      map[string]bool
 	valves      map[string]*valveT
 }
 
@@ -56,7 +62,74 @@ type valveT struct {
 }
 
 func (p *puzT) maxPressure() *puzT {
-	return p
+	if p.elapsedTime >= maxTime {
+		return p
+	}
+
+	name := p.moves[len(p.moves)-1]
+	valve := p.valves[name]
+
+	if valve.flowRate > 0 && valve.openTime > p.elapsedTime { // open the valve
+		valve.openTime = p.elapsedTime
+		p.opened[name] = true
+		// p.printSummary()
+		// fmt.Printf("You open valve %v.\n", name)
+		p.elapsedTime++
+		if p.elapsedTime >= maxTime || len(p.opened) == len(p.valves) {
+			p.elapsedTime = maxTime
+			return p
+		}
+	}
+
+	var bestPuz *puzT
+	var bestPressure int
+	for k := range valve.neighbors {
+		newP := p.moveTo(k).maxPressure()
+		pressure := newP.pressure(maxTime)
+		if bestPuz == nil || pressure > bestPressure {
+			bestPuz = newP
+			bestPressure = pressure
+		}
+	}
+
+	return bestPuz
+}
+
+func (p *puzT) moveTo(name string) *puzT {
+	// p.printSummary()
+	// fmt.Printf("You move to valve %v.\n", name)
+
+	moves := append([]string{}, p.moves...)
+	newP := &puzT{
+		elapsedTime: p.elapsedTime + 1,
+		moves:       append(moves, name),
+		opened:      map[string]bool{},
+		valves:      map[string]*valveT{},
+	}
+	for k := range p.opened {
+		newP.opened[k] = true
+	}
+	for k, v := range p.valves {
+		newP.valves[k] = &valveT{
+			openTime:  v.openTime,
+			flowRate:  v.flowRate,
+			neighbors: v.neighbors, // ok to point to original map, as neighbors does not change.
+		}
+	}
+	return newP
+}
+
+func (p *puzT) printSummary() {
+	fmt.Printf("\n== Minute %v ==\n", p.elapsedTime+1)
+	open := maps.Keys(p.opened)
+	open = Filter(open, func(name string) bool { return p.valves[name].flowRate > 0 })
+	if len(open) > 0 {
+		sort.Strings(open)
+		pressure := p.pressure(p.elapsedTime + 1)
+		fmt.Printf("Valves %v are open, releasing %v pressure.\n", strings.Join(open, ", "), pressure)
+	} else {
+		fmt.Printf("No valves are open.\n")
+	}
 }
 
 func (p *puzT) pressure(elapsedTime int) int {
@@ -75,9 +148,9 @@ var lineRE = regexp.MustCompile(`^Valve (\S+) has flow rate=(\d+); tunnels? lead
 
 func parsePuzzle(lines []string) *puzT {
 	p := &puzT{
-		moves:   []string{"AA"},
-		visited: map[string]bool{},
-		valves:  map[string]*valveT{},
+		moves:  []string{"AA"},
+		opened: map[string]bool{},
+		valves: map[string]*valveT{},
 	}
 
 	for _, line := range lines {
@@ -85,15 +158,19 @@ func parsePuzzle(lines []string) *puzT {
 		if len(m) != 4 {
 			log.Fatalf("Unable to parse line: %v", line)
 		}
+		name := m[1]
 		v := &valveT{
-			openTime:  30, // not open yet
+			openTime:  maxTime, // not open yet
 			flowRate:  must.Atoi(m[2]),
 			neighbors: map[string]bool{},
 		}
 		for _, n := range strings.Split(m[3], ", ") {
 			v.neighbors[n] = true
 		}
-		p.valves[m[1]] = v
+		p.valves[name] = v
+		if v.flowRate == 0 {
+			p.opened[name] = true // no need to open it
+		}
 	}
 
 	return p
