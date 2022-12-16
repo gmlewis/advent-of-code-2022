@@ -33,9 +33,9 @@ func process(filename string) {
 	puz := parsePuzzle(lines)
 	puz = puz.maxPressure()
 
-	for puz.elapsedTime < maxTime {
-		puz = puz.bestMove()
-	}
+	// for puz.elapsedTime < maxTime {
+	// 	puz = puz.bestMove()
+	// }
 
 	printf("Solution: %v\n", puz.pressure(maxTime))
 }
@@ -109,16 +109,22 @@ func (p *puzT) makeMoveTo(to string) *puzT {
 }
 
 func (p *puzT) followPathTo(bestPathTo map[string]int) *puzT {
+	if len(bestPathTo) == 0 {
+		return p
+	}
+
 	path := maps.Keys(bestPathTo)
 	sort.Slice(path, func(a, b int) bool { return bestPathTo[path[a]] < bestPathTo[path[b]] })
 
 	newP := p
 	for _, n := range path[1:] {
 		newP = newP.moveTo(n)
-		if p.needsToOpen[n] {
-			newP.openValve(n)
-		}
+		// Don't automatically open a valve just because you are there already.
+		// if p.needsToOpen[n] {
+		// 	newP.openValve(n)
+		// }
 	}
+	newP.openValve(path[len(path)-1])
 
 	return newP
 }
@@ -240,7 +246,9 @@ func (p *puzT) printSummary() {
 
 	fmt.Printf("Moves: %v\n", strings.Join(p.moves, ", "))
 	stillClosed := maps.Keys(p.needsToOpen)
-	fmt.Printf("Valves %v are still closed.\n", strings.Join(stillClosed, ", "))
+	if len(stillClosed) > 0 {
+		fmt.Printf("Valves %v are still closed.\n", strings.Join(stillClosed, ", "))
+	}
 }
 
 func (p *puzT) pressure(elapsedTime int) int {

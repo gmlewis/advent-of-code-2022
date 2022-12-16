@@ -11,12 +11,12 @@ func TestPressure_Example1(t *testing.T) {
 	p := parsePuzzle(strings.Split(strings.TrimSpace(example1), "\n"))
 
 	// Enter the provided solution:
-	p.valves["DD"].openTime = 2
-	p.valves["BB"].openTime = 5
-	p.valves["JJ"].openTime = 9
-	p.valves["HH"].openTime = 17
-	p.valves["EE"].openTime = 21
-	p.valves["CC"].openTime = 24
+	p.valves["DD"].openTime = 2  // rate=20
+	p.valves["BB"].openTime = 5  // rate=13
+	p.valves["JJ"].openTime = 9  // rate=21
+	p.valves["HH"].openTime = 17 // rate=22
+	p.valves["EE"].openTime = 21 // rate=3
+	p.valves["CC"].openTime = 24 // rate=2
 
 	// Move sequence:
 	// AA, DD, CC, BB, AA, II, JJ, II, AA, DD, EE, FF, GG, HH, GG, FF, EE, DD, CC
