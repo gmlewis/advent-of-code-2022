@@ -15,10 +15,15 @@ import (
 	. "github.com/gmlewis/advent-of-code-2021/enum"
 	"github.com/gmlewis/advent-of-code-2021/maps"
 	"github.com/gmlewis/advent-of-code-2021/must"
+	"github.com/gmlewis/advent-of-code-2021/stream"
 )
 
 var logf = log.Printf
 var printf = fmt.Printf
+
+var (
+	debug = flag.Bool("debug", false, "Print debugging")
+)
 
 func main() {
 	flag.Parse()
@@ -33,78 +38,112 @@ func process(filename string) {
 	puz := parsePuzzle(lines)
 	puz = puz.maxPressure()
 
-	// for puz.elapsedTime < maxTime {
-	// 	puz = puz.bestMove()
-	// }
-
 	printf("Solution: %v\n", puz.pressure(maxTime))
 }
 
 func (p *puzT) maxPressure() *puzT {
-	if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
-		p.elapsedTime++
-		return p
-	}
-
-	var bestPressure int
 	var bestPuz *puzT
-	for n := range p.needsToOpen {
-		newP := p.makeMoveTo(n).maxPressure()
-		pressure := newP.pressure(maxTime)
+	var bestPressure int
+	for order := range p.allPossibleOrders() {
+		// log.Printf("Order: %v", strings.Join(order, ", "))
+		puz, pressure := p.checkPressure(bestPressure, order)
+		// log.Printf("Order: %v - Final pressure %v", strings.Join(order, ", "), pressure)
 		if bestPuz == nil || pressure > bestPressure {
-			bestPuz = newP
+			// log.Printf("New winning order: %v - %v", pressure, strings.Join(order, ", "))
+			bestPuz = puz
 			bestPressure = pressure
 		}
 	}
-
 	return bestPuz
 }
 
-func (p *puzT) bestMove() *puzT {
-	if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
-		p.elapsedTime++
-		p.printSummary()
-		return p
+func (p *puzT) checkPressure(bestPressure int, order []string) (*puzT, int) {
+	newP := p
+	for _, name := range order {
+		newP = newP.makeMoveTo(name)
 	}
 
-	name := p.moves[len(p.moves)-1]
+	// for newP.elapsedTime <= maxTime {
+	// 	newP.printSummary()
+	// 	newP.elapsedTime++
+	// }
 
-	distances := algorithm.Dijkstra[string, int](p, name, nil, math.MaxInt)
-	log.Printf("distances from %q: %#v", name, distances)
-
-	log.Printf("valves that still need to be opened: %+v", maps.Keys(p.needsToOpen))
-
-	var bestValve string
-	var bestPressure int
-	var bestPathTo map[string]int
-	for n := range p.needsToOpen {
-		pathTo := algorithm.PathTo[string, int](p, name, n, math.MaxInt)
-		log.Printf("Path from %q to %q: %+v", name, n, pathTo)
-
-		pressure := p.potentialPressureIfGoTo(name, n, pathTo)
-		if pressure == 0 {
-			continue
-		}
-
-		if bestValve == "" || bestPressure < pressure {
-			bestValve = n
-			bestPressure = pressure
-			bestPathTo = pathTo
-		}
-	}
-	log.Printf("bestValve=%q, bestPressure=%v\n\n", bestValve, bestPressure)
-
-	if bestValve == "" {
-		p.elapsedTime++
-		return p
-	}
-
-	return p.followPathTo(bestPathTo)
+	return newP, newP.pressure(maxTime)
 }
+
+func (p *puzT) allPossibleOrders() <-chan []string {
+	keys := maps.Keys(p.needsToOpen)
+	sort.Slice(keys, func(a, b int) bool { return p.valves[keys[a]].flowRate > p.valves[keys[b]].flowRate })
+	// log.Printf("keys: %v", keys)
+	return stream.PermutationsOf(keys)
+}
+
+// func (p *puzT) maxPressure() *puzT {
+// 	if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
+// 		p.elapsedTime++
+// 		return p
+// 	}
+//
+// 	var bestPressure int
+// 	var bestPuz *puzT
+// 	for n := range p.needsToOpen {
+// 		newP := p.makeMoveTo(n).maxPressure()
+// 		pressure := newP.pressure(maxTime)
+// 		if bestPuz == nil || pressure > bestPressure {
+// 			bestPuz = newP
+// 			bestPressure = pressure
+// 		}
+// 	}
+//
+// 	return bestPuz
+// }
+
+// func (p *puzT) bestMove() *puzT {
+// 	if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
+// 		p.elapsedTime++
+// 		p.printSummary()
+// 		return p
+// 	}
+//
+// 	name := p.moves[len(p.moves)-1]
+//
+// 	distances := algorithm.Dijkstra[string, int](p, name, nil, math.MaxInt)
+// 	log.Printf("distances from %q: %#v", name, distances)
+//
+// 	log.Printf("valves that still need to be opened: %+v", maps.Keys(p.needsToOpen))
+//
+// 	var bestValve string
+// 	var bestPressure int
+// 	var bestPathTo map[string]int
+// 	for n := range p.needsToOpen {
+// 		pathTo := algorithm.PathTo[string, int](p, name, n, math.MaxInt)
+// 		log.Printf("Path from %q to %q: %+v", name, n, pathTo)
+//
+// 		pressure := p.potentialPressureIfGoTo(name, n, pathTo)
+// 		if pressure == 0 {
+// 			continue
+// 		}
+//
+// 		if bestValve == "" || bestPressure < pressure {
+// 			bestValve = n
+// 			bestPressure = pressure
+// 			bestPathTo = pathTo
+// 		}
+// 	}
+// 	log.Printf("bestValve=%q, bestPressure=%v\n\n", bestValve, bestPressure)
+//
+// 	if bestValve == "" {
+// 		p.elapsedTime++
+// 		return p
+// 	}
+//
+// 	return p.followPathTo(bestPathTo)
+// }
 
 func (p *puzT) makeMoveTo(to string) *puzT {
 	name := p.moves[len(p.moves)-1]
 	pathTo := algorithm.PathTo[string, int](p, name, to, math.MaxInt)
+	// log.Printf("makeMoveTo: from=%q, to=%q, pathTo=%#v", name, to, pathTo)
 	return p.followPathTo(pathTo)
 }
 
@@ -143,7 +182,7 @@ func (p *puzT) potentialPressureIfGoTo(from, to string, pathTo map[string]int) i
 		return 0
 	}
 	pressure := totalFlowTime * p.valves[to].flowRate
-	log.Printf("potential added pressure if %v were next: %v (totalFlowTime=%v, flowRate=%v)", to, pressure, totalFlowTime, p.valves[to].flowRate)
+	// log.Printf("potential added pressure if %v were next: %v (totalFlowTime=%v, flowRate=%v)", to, pressure, totalFlowTime, p.valves[to].flowRate)
 	return pressure
 }
 
@@ -199,9 +238,11 @@ type valveT struct {
 
 func (p *puzT) openValve(name string) {
 	p.elapsedTime++
-	p.printSummary()
+	if *debug {
+		p.printSummary()
+		fmt.Printf("You open valve %v.\n\n", name)
+	}
 
-	fmt.Printf("You open valve %v.\n\n", name)
 	valve := p.valves[name]
 	valve.openTime = p.elapsedTime
 	delete(p.needsToOpen, name)
@@ -226,8 +267,10 @@ func (p *puzT) moveTo(name string) *puzT {
 		}
 	}
 
-	newP.printSummary()
-	fmt.Printf("You move to valve %v.\n\n", name)
+	if *debug {
+		newP.printSummary()
+		fmt.Printf("You move to valve %v.\n\n", name)
+	}
 
 	return newP
 }
@@ -298,9 +341,6 @@ func parsePuzzle(lines []string) *puzT {
 func (p *puzT) Distance(from, to string) int {
 	if !p.valves[from].neighbors[to] {
 		return math.MaxInt
-	}
-	if p.needsToOpen[to] {
-		return 2
 	}
 	return 1
 }
