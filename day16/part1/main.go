@@ -58,9 +58,9 @@ func (p *puzT) maxPressure() *puzT {
 }
 
 func (p *puzT) checkPressure(bestPressure int, order []string) (*puzT, int) {
-	newP := p
+	newP := p.copy()
 	for _, name := range order {
-		newP = newP.makeMoveTo(name)
+		newP.makeMoveTo(name)
 	}
 
 	// for newP.elapsedTime <= maxTime {
@@ -140,32 +140,26 @@ func (p *puzT) allPossibleOrders() <-chan []string {
 // 	return p.followPathTo(bestPathTo)
 // }
 
-func (p *puzT) makeMoveTo(to string) *puzT {
+func (p *puzT) makeMoveTo(to string) {
 	name := p.moves[len(p.moves)-1]
 	pathTo := algorithm.PathTo[string, int](p, name, to, math.MaxInt)
 	// log.Printf("makeMoveTo: from=%q, to=%q, pathTo=%#v", name, to, pathTo)
-	return p.followPathTo(pathTo)
+	p.followPathTo(pathTo)
 }
 
-func (p *puzT) followPathTo(bestPathTo map[string]int) *puzT {
+func (p *puzT) followPathTo(bestPathTo map[string]int) {
 	if len(bestPathTo) == 0 {
-		return p
+		return
 	}
 
 	path := maps.Keys(bestPathTo)
 	sort.Slice(path, func(a, b int) bool { return bestPathTo[path[a]] < bestPathTo[path[b]] })
 
-	newP := p
 	for _, n := range path[1:] {
-		newP = newP.moveTo(n)
+		p.moveTo(n)
 		// Don't automatically open a valve just because you are there already.
-		// if p.needsToOpen[n] {
-		// 	newP.openValve(n)
-		// }
 	}
-	newP.openValve(path[len(path)-1])
-
-	return newP
+	p.openValve(path[len(path)-1])
 }
 
 func (p *puzT) potentialPressureIfGoTo(from, to string, pathTo map[string]int) int {
@@ -248,11 +242,11 @@ func (p *puzT) openValve(name string) {
 	delete(p.needsToOpen, name)
 }
 
-func (p *puzT) moveTo(name string) *puzT {
+func (p *puzT) copy() *puzT {
 	moves := append([]string{}, p.moves...)
 	newP := &puzT{
-		elapsedTime: p.elapsedTime + 1,
-		moves:       append(moves, name),
+		elapsedTime: p.elapsedTime,
+		moves:       moves,
 		needsToOpen: map[string]bool{},
 		valves:      map[string]*valveT{},
 	}
@@ -267,12 +261,12 @@ func (p *puzT) moveTo(name string) *puzT {
 		}
 	}
 
-	if *debug {
-		newP.printSummary()
-		fmt.Printf("You move to valve %v.\n\n", name)
-	}
-
 	return newP
+}
+
+func (p *puzT) moveTo(name string) {
+	p.moves = append(p.moves, name)
+	p.elapsedTime++
 }
 
 func (p *puzT) printSummary() {
