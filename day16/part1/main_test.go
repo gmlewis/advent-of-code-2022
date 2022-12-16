@@ -18,6 +18,9 @@ func TestPressure_Example1(t *testing.T) {
 	p.valves["EE"].openTime = 21
 	p.valves["CC"].openTime = 24
 
+	// Move sequence:
+	// AA, DD, CC, BB, AA, II, JJ, II, AA, DD, EE, FF, GG, HH, GG, FF, EE, DD, CC
+
 	if got, want := p.pressure(30), 1651; got != want {
 		t.Errorf("pressure = %v, want %v", got, want)
 	}

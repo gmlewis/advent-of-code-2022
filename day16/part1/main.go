@@ -31,17 +31,33 @@ func process(filename string) {
 	lines := must.ReadFileLines(filename)
 
 	puz := parsePuzzle(lines)
+	puz = puz.maxPressure()
 
 	for puz.elapsedTime < maxTime {
 		puz = puz.bestMove()
 	}
 
-	// maxKey, maxDistance := algorithm.Max(distances, math.MaxInt)
-	// log.Printf("maxKey=%v, maxDistance=%v", maxKey, maxDistance)
-
-	// solution := puz.maxPressure()
-
 	printf("Solution: %v\n", puz.pressure(maxTime))
+}
+
+func (p *puzT) maxPressure() *puzT {
+	if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
+		p.elapsedTime++
+		return p
+	}
+
+	var bestPressure int
+	var bestPuz *puzT
+	for n := range p.needsToOpen {
+		newP := p.makeMoveTo(n).maxPressure()
+		pressure := newP.pressure(maxTime)
+		if bestPuz == nil || pressure > bestPressure {
+			bestPuz = newP
+			bestPressure = pressure
+		}
+	}
+
+	return bestPuz
 }
 
 func (p *puzT) bestMove() *puzT {
@@ -83,6 +99,16 @@ func (p *puzT) bestMove() *puzT {
 		return p
 	}
 
+	return p.followPathTo(bestPathTo)
+}
+
+func (p *puzT) makeMoveTo(to string) *puzT {
+	name := p.moves[len(p.moves)-1]
+	pathTo := algorithm.PathTo[string, int](p, name, to, math.MaxInt)
+	return p.followPathTo(pathTo)
+}
+
+func (p *puzT) followPathTo(bestPathTo map[string]int) *puzT {
 	path := maps.Keys(bestPathTo)
 	sort.Slice(path, func(a, b int) bool { return bestPathTo[path[a]] < bestPathTo[path[b]] })
 
@@ -135,35 +161,35 @@ type valveT struct {
 	neighbors map[string]bool
 }
 
-func (p *puzT) maxPressure() *puzT {
-	if p.elapsedTime >= maxTime {
-		return p
-	}
-
-	name := p.moves[len(p.moves)-1]
-	valve := p.valves[name]
-
-	if valve.flowRate > 0 && valve.openTime > p.elapsedTime { // open the valve
-		p.openValve(name)
-		if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
-			p.elapsedTime = maxTime
-			return p
-		}
-	}
-
-	var bestPuz *puzT
-	var bestPressure int
-	for k := range valve.neighbors {
-		newP := p.moveTo(k).maxPressure()
-		pressure := newP.pressure(maxTime)
-		if bestPuz == nil || pressure > bestPressure {
-			bestPuz = newP
-			bestPressure = pressure
-		}
-	}
-
-	return bestPuz
-}
+// func (p *puzT) maxPressure() *puzT {
+// 	if p.elapsedTime >= maxTime {
+// 		return p
+// 	}
+//
+// 	name := p.moves[len(p.moves)-1]
+// 	valve := p.valves[name]
+//
+// 	if valve.flowRate > 0 && valve.openTime > p.elapsedTime { // open the valve
+// 		p.openValve(name)
+// 		if p.elapsedTime >= maxTime || len(p.needsToOpen) == 0 {
+// 			p.elapsedTime = maxTime
+// 			return p
+// 		}
+// 	}
+//
+// 	var bestPuz *puzT
+// 	var bestPressure int
+// 	for k := range valve.neighbors {
+// 		newP := p.moveTo(k).maxPressure()
+// 		pressure := newP.pressure(maxTime)
+// 		if bestPuz == nil || pressure > bestPressure {
+// 			bestPuz = newP
+// 			bestPressure = pressure
+// 		}
+// 	}
+//
+// 	return bestPuz
+// }
 
 func (p *puzT) openValve(name string) {
 	p.elapsedTime++
@@ -211,6 +237,10 @@ func (p *puzT) printSummary() {
 	} else {
 		fmt.Printf("No valves are open.\n")
 	}
+
+	fmt.Printf("Moves: %v\n", strings.Join(p.moves, ", "))
+	stillClosed := maps.Keys(p.needsToOpen)
+	fmt.Printf("Valves %v are still closed.\n", strings.Join(stillClosed, ", "))
 }
 
 func (p *puzT) pressure(elapsedTime int) int {
