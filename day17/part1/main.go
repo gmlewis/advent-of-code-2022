@@ -107,12 +107,19 @@ func (p *puzT) dropSpecificRock(x int, rockSize keyT, fn rockFunc) {
 	y := p.height
 
 	for y > 0 && fn(x, y-1, false)(p) {
+		dx := p.getGasDx(1)
+		if x+dx >= 0 && x+dx+rockSize[0] < chamberWidth && fn(x+dx, y-1, false)(p) {
+			x += dx
+		}
 		y--
 	}
 
 	fn(x, y, true)(p)
 
-	p.height += rockSize[1]
+	newHeight := y + rockSize[1]
+	if newHeight > p.height {
+		p.height = newHeight
+	}
 }
 
 func (p *puzT) dropRock(n int) {
