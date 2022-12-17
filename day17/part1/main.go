@@ -28,9 +28,9 @@ func process(filename string) {
 	puz := parsePuzzle(buf)
 	for i := 0; i < totalRocks; i++ {
 		puz.dropRock(i)
-		if i < 10 {
-			fmt.Printf("%v\n\n", puz)
-		}
+		// if i < 10 {
+		// 	fmt.Printf("%v\n\n", puz)
+		// }
 	}
 
 	printf("Solution: %v\n", puz.height)

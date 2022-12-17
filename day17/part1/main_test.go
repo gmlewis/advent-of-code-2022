@@ -236,12 +236,10 @@ func genPuz(height, gasIndex int, addRocks ...RenderRock) *puzT {
 	return puz
 }
 
-/*
 func TestExample(t *testing.T) {
-	want := "Solution: 0\n"
+	want := "Solution: 3068\n"
 	test.Runner(t, example1, want, process, &printf)
 }
-*/
 
 func BenchmarkExample(b *testing.B) {
 	test.Benchmark(b, "../example1.txt", process, &logf, &printf)
