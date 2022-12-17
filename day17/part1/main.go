@@ -51,70 +51,54 @@ type puzT struct {
 	grid     map[keyT]rune
 }
 type rockFunc func(p *puzT, startX int)
+type rockDef []keyT
 
 var (
-	dropRockN = []rockFunc{
-		dropRock1,
-		dropRock2,
-		dropRock3,
-		dropRock4,
-		dropRock5,
-	}
+	dropRockN = []rockFunc{dropRock1, dropRock2, dropRock3, dropRock4, dropRock5}
+	rock1def  = []keyT{{0, 0}, {1, 0}, {2, 0}, {3, 0}}
+	rock2def  = []keyT{{1, 0}, {0, 1}, {1, 1}, {2, 1}, {1, 2}}
+	rock3def  = []keyT{{0, 0}, {1, 0}, {2, 0}, {2, 1}, {2, 2}}
+	rock4def  = []keyT{{0, 0}, {0, 1}, {0, 2}, {0, 3}}
+	rock5def  = []keyT{{0, 0}, {0, 1}, {1, 0}, {1, 1}}
 )
 
-type RenderRock func(p *puzT)
+type RenderRock func(p *puzT) bool
+
+func (p *puzT) checkRock(x, y int, rockdef rockDef) bool {
+	for _, k := range rockdef {
+		if r := p.grid[keyT{x + k[0], y + k[1]}]; r != 0 {
+			return false // collision
+		}
+	}
+	for _, k := range rockdef {
+		p.grid[keyT{x + k[0], y + k[1]}] = '#'
+	}
+	return true
+}
 
 func rock1(x, y int) RenderRock {
-	return func(p *puzT) {
-		p.grid[keyT{x, y}] = '#'
-		p.grid[keyT{x + 1, y}] = '#'
-		p.grid[keyT{x + 2, y}] = '#'
-		p.grid[keyT{x + 3, y}] = '#'
-	}
+	return func(p *puzT) bool { return p.checkRock(x, y, rock1def) }
 }
 
 func rock2(x, y int) RenderRock {
-	return func(p *puzT) {
-		p.grid[keyT{x + 1, y}] = '#'
-		p.grid[keyT{x, y + 1}] = '#'
-		p.grid[keyT{x + 1, y + 1}] = '#'
-		p.grid[keyT{x + 2, y + 1}] = '#'
-		p.grid[keyT{x + 1, y + 2}] = '#'
-	}
+	return func(p *puzT) bool { return p.checkRock(x, y, rock2def) }
 }
 
 func rock3(x, y int) RenderRock {
-	return func(p *puzT) {
-		p.grid[keyT{x, y}] = '#'
-		p.grid[keyT{x + 1, y}] = '#'
-		p.grid[keyT{x + 2, y}] = '#'
-		p.grid[keyT{x + 2, y + 1}] = '#'
-		p.grid[keyT{x + 2, y + 2}] = '#'
-	}
+	return func(p *puzT) bool { return p.checkRock(x, y, rock3def) }
 }
 
 func rock4(x, y int) RenderRock {
-	return func(p *puzT) {
-		p.grid[keyT{x, y}] = '#'
-		p.grid[keyT{x, y + 1}] = '#'
-		p.grid[keyT{x, y + 2}] = '#'
-		p.grid[keyT{x, y + 3}] = '#'
-	}
+	return func(p *puzT) bool { return p.checkRock(x, y, rock4def) }
 }
 
 func rock5(x, y int) RenderRock {
-	return func(p *puzT) {
-		p.grid[keyT{x, y}] = '#'
-		p.grid[keyT{x, y + 1}] = '#'
-		p.grid[keyT{x + 1, y}] = '#'
-		p.grid[keyT{x + 1, y + 1}] = '#'
-	}
+	return func(p *puzT) bool { return p.checkRock(x, y, rock5def) }
 }
 
-func dropRock1(p *puzT, x int) {
-	// ####
-	if x > chamberWidth-4 {
-		x = chamberWidth - 4
+func (p *puzT) dropSpecificRock(x, width, height int, rockFunc func(x, y int) RenderRock) {
+	if x > chamberWidth-width {
+		x = chamberWidth - width
 	}
 	y := p.height
 
@@ -126,53 +110,28 @@ func dropRock1(p *puzT, x int) {
 		y--
 	}
 
-	rock1(x, y)(p)
+	rockFunc(x, y)(p)
 
-	p.height++
+	p.height += height
+}
+
+func dropRock1(p *puzT, x int) {
+	// ####
+	p.dropSpecificRock(x, 4, 1, rock1)
 }
 
 func dropRock2(p *puzT, x int) {
 	// .#.
 	// ###
 	// .#.
-	if x > chamberWidth-3 {
-		x = chamberWidth - 3
-	}
-	y := p.height
-
-	noCollision := func() bool {
-		return false
-	}
-
-	for y > 0 && noCollision() {
-		y--
-	}
-
-	rock2(x, y)(p)
-
-	p.height += 3
+	p.dropSpecificRock(x, 3, 3, rock2)
 }
 
 func dropRock3(p *puzT, x int) {
 	// ..#
 	// ..#
 	// ###
-	if x > chamberWidth-3 {
-		x = chamberWidth - 3
-	}
-	y := p.height
-
-	noCollision := func() bool {
-		return false
-	}
-
-	for y > 0 && noCollision() {
-		y--
-	}
-
-	rock3(x, y)(p)
-
-	p.height += 3
+	p.dropSpecificRock(x, 3, 3, rock3)
 }
 
 func dropRock4(p *puzT, x int) {
@@ -180,43 +139,13 @@ func dropRock4(p *puzT, x int) {
 	// #
 	// #
 	// #
-	if x > chamberWidth-1 {
-		x = chamberWidth - 1
-	}
-	y := p.height
-
-	noCollision := func() bool {
-		return false
-	}
-
-	for y > 0 && noCollision() {
-		y--
-	}
-
-	rock4(x, y)(p)
-
-	p.height += 4
+	p.dropSpecificRock(x, 1, 4, rock4)
 }
 
 func dropRock5(p *puzT, x int) {
 	// ##
 	// ##
-	if x > chamberWidth-2 {
-		x = chamberWidth - 2
-	}
-	y := p.height
-
-	noCollision := func() bool {
-		return false
-	}
-
-	for y > 0 && noCollision() {
-		y--
-	}
-
-	rock5(x, y)(p)
-
-	p.height += 2
+	p.dropSpecificRock(x, 2, 2, rock5)
 }
 
 func (p *puzT) dropRock(n int) {
