@@ -26,26 +26,29 @@ func TestDropRock(t *testing.T) {
 			rockNum: 2,
 			want:    genPuz(4, 8, r1(2, 0), r2(2, 1)),
 		},
-
 		{
 			name:    "example 1 - rock 3",
 			puz:     genPuz(4, 8, r1(2, 0), r2(2, 1)),
 			rockNum: 3,
 			want:    genPuz(6, 13, r1(2, 0), r2(2, 1), r3(0, 3)),
 		},
-
 		{
 			name:    "example 1 - rock 4",
 			puz:     genPuz(6, 13, r1(2, 0), r2(2, 1), r3(0, 3)),
 			rockNum: 4,
 			want:    genPuz(7, 20, r1(2, 0), r2(2, 1), r3(0, 3), r4(4, 3)),
 		},
-
 		{
 			name:    "example 1 - rock 5",
 			puz:     genPuz(7, 20, r1(2, 0), r2(2, 1), r3(0, 3), r4(4, 3)),
 			rockNum: 5,
 			want:    genPuz(9, 24, r1(2, 0), r2(2, 1), r3(0, 3), r4(4, 3), r5(4, 7)),
+		},
+		{
+			name:    "example 1 - rock 6",
+			puz:     genPuz(9, 24, r1(2, 0), r2(2, 1), r3(0, 3), r4(4, 3), r5(4, 7)),
+			rockNum: 6,
+			want:    genPuz(10, 28, r1(2, 0), r2(2, 1), r3(0, 3), r4(4, 3), r5(4, 7), r1(1, 9)),
 		},
 
 		{
@@ -133,7 +136,7 @@ func TestDropRock(t *testing.T) {
 			name:    "initial rock4 - all right",
 			puz:     &puzT{gas: []rune(">>>>>>>>"), grid: map[keyT]rune{}},
 			rockNum: 4,
-			want:    genPuz(4, 4, r4(6, 0)),
+			want:    genPuz(4, 4, r4(5, 0)),
 		},
 		{
 			name:    "initial rock4 - even mixed gas - left right",
@@ -229,20 +232,6 @@ var example1 = `
 `
 
 /*
-|..@@...|
-|..@@...|
-|.......|
-|.......|
-|.......|
-|....#..|
-|..#.#..|
-|..#.#..|
-|#####..|
-|..###..|
-|...#...|
-|..####.|
-+-------+
-
 |..@@@@.|
 |.......|
 |.......|
