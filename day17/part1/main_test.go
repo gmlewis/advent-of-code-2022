@@ -1,10 +1,17 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/gmlewis/advent-of-code-2021/test"
 )
+
+func r1(x, y int) RenderRock { return rock1(x, y, true) }
+func r2(x, y int) RenderRock { return rock2(x, y, true) }
+func r3(x, y int) RenderRock { return rock3(x, y, true) }
+func r4(x, y int) RenderRock { return rock4(x, y, true) }
+func r5(x, y int) RenderRock { return rock5(x, y, true) }
 
 func TestDropRock(t *testing.T) {
 	tests := []struct {
@@ -14,128 +21,135 @@ func TestDropRock(t *testing.T) {
 		want    *puzT
 	}{
 		{
+			name:    "example 1 - rock 2",
+			puz:     genPuz(1, 4, r1(2, 0)),
+			rockNum: 2,
+			want:    genPuz(4, 8, r1(2, 0), r2(2, 0)),
+		},
+
+		{
 			name:    "initial rock1 - all left",
 			puz:     &puzT{gas: []rune("<<<<<<<<"), grid: map[keyT]rune{}},
 			rockNum: 1,
-			want:    genPuz(1, 4, rock1(0, 0)),
+			want:    genPuz(1, 4, r1(0, 0)),
 		},
 		{
 			name:    "initial rock1 - all right",
 			puz:     &puzT{gas: []rune(">>>>>>>>"), grid: map[keyT]rune{}},
 			rockNum: 1,
-			want:    genPuz(1, 4, rock1(3, 0)),
+			want:    genPuz(1, 4, r1(3, 0)),
 		},
 		{
 			name:    "initial rock1 - even mixed gas - left right",
 			puz:     &puzT{gas: []rune("><><><><"), grid: map[keyT]rune{}},
 			rockNum: 1,
-			want:    genPuz(1, 4, rock1(2, 0)),
+			want:    genPuz(1, 4, r1(2, 0)),
 		},
 		{
 			name:    "initial rock1 - even mixed gas - right left",
 			puz:     &puzT{gas: []rune("<><><><>"), grid: map[keyT]rune{}},
 			rockNum: 1,
-			want:    genPuz(1, 4, rock1(2, 0)),
+			want:    genPuz(1, 4, r1(2, 0)),
 		},
 
 		{
 			name:    "initial rock2 - all left",
 			puz:     &puzT{gas: []rune("<<<<<<<<"), grid: map[keyT]rune{}},
 			rockNum: 2,
-			want:    genPuz(3, 4, rock2(0, 0)),
+			want:    genPuz(3, 4, r2(0, 0)),
 		},
 		{
 			name:    "initial rock2 - all right",
 			puz:     &puzT{gas: []rune(">>>>>>>>"), grid: map[keyT]rune{}},
 			rockNum: 2,
-			want:    genPuz(3, 4, rock2(4, 0)),
+			want:    genPuz(3, 4, r2(4, 0)),
 		},
 		{
 			name:    "initial rock2 - even mixed gas - left right",
 			puz:     &puzT{gas: []rune("><><><><"), grid: map[keyT]rune{}},
 			rockNum: 2,
-			want:    genPuz(3, 4, rock2(2, 0)),
+			want:    genPuz(3, 4, r2(2, 0)),
 		},
 		{
 			name:    "initial rock2 - even mixed gas - right left",
 			puz:     &puzT{gas: []rune("<><><><>"), grid: map[keyT]rune{}},
 			rockNum: 2,
-			want:    genPuz(3, 4, rock2(2, 0)),
+			want:    genPuz(3, 4, r2(2, 0)),
 		},
 
 		{
 			name:    "initial rock3 - all left",
 			puz:     &puzT{gas: []rune("<<<<<<<<"), grid: map[keyT]rune{}},
 			rockNum: 3,
-			want:    genPuz(3, 4, rock3(0, 0)),
+			want:    genPuz(3, 4, r3(0, 0)),
 		},
 		{
 			name:    "initial rock3 - all right",
 			puz:     &puzT{gas: []rune(">>>>>>>>"), grid: map[keyT]rune{}},
 			rockNum: 3,
-			want:    genPuz(3, 4, rock3(4, 0)),
+			want:    genPuz(3, 4, r3(4, 0)),
 		},
 		{
 			name:    "initial rock3 - even mixed gas - left right",
 			puz:     &puzT{gas: []rune("><><><><"), grid: map[keyT]rune{}},
 			rockNum: 3,
-			want:    genPuz(3, 4, rock3(2, 0)),
+			want:    genPuz(3, 4, r3(2, 0)),
 		},
 		{
 			name:    "initial rock3 - even mixed gas - right left",
 			puz:     &puzT{gas: []rune("<><><><>"), grid: map[keyT]rune{}},
 			rockNum: 3,
-			want:    genPuz(3, 4, rock3(2, 0)),
+			want:    genPuz(3, 4, r3(2, 0)),
 		},
 
 		{
 			name:    "initial rock4 - all left",
 			puz:     &puzT{gas: []rune("<<<<<<<<"), grid: map[keyT]rune{}},
 			rockNum: 4,
-			want:    genPuz(4, 4, rock4(0, 0)),
+			want:    genPuz(4, 4, r4(0, 0)),
 		},
 		{
 			name:    "initial rock4 - all right",
 			puz:     &puzT{gas: []rune(">>>>>>>>"), grid: map[keyT]rune{}},
 			rockNum: 4,
-			want:    genPuz(4, 4, rock4(6, 0)),
+			want:    genPuz(4, 4, r4(6, 0)),
 		},
 		{
 			name:    "initial rock4 - even mixed gas - left right",
 			puz:     &puzT{gas: []rune("><><><><"), grid: map[keyT]rune{}},
 			rockNum: 4,
-			want:    genPuz(4, 4, rock4(2, 0)),
+			want:    genPuz(4, 4, r4(2, 0)),
 		},
 		{
 			name:    "initial rock4 - even mixed gas - right left",
 			puz:     &puzT{gas: []rune("<><><><>"), grid: map[keyT]rune{}},
 			rockNum: 4,
-			want:    genPuz(4, 4, rock4(2, 0)),
+			want:    genPuz(4, 4, r4(2, 0)),
 		},
 
 		{
 			name:    "initial rock5 - all left",
 			puz:     &puzT{gas: []rune("<<<<<<<<"), grid: map[keyT]rune{}},
 			rockNum: 5,
-			want:    genPuz(2, 4, rock5(0, 0)),
+			want:    genPuz(2, 4, r5(0, 0)),
 		},
 		{
 			name:    "initial rock5 - all right",
 			puz:     &puzT{gas: []rune(">>>>>>>>"), grid: map[keyT]rune{}},
 			rockNum: 5,
-			want:    genPuz(2, 4, rock5(5, 0)),
+			want:    genPuz(2, 4, r5(5, 0)),
 		},
 		{
 			name:    "initial rock5 - even mixed gas - left right",
 			puz:     &puzT{gas: []rune("><><><><"), grid: map[keyT]rune{}},
 			rockNum: 5,
-			want:    genPuz(2, 4, rock5(2, 0)),
+			want:    genPuz(2, 4, r5(2, 0)),
 		},
 		{
 			name:    "initial rock5 - even mixed gas - right left",
 			puz:     &puzT{gas: []rune("<><><><>"), grid: map[keyT]rune{}},
 			rockNum: 5,
-			want:    genPuz(2, 4, rock5(2, 0)),
+			want:    genPuz(2, 4, r5(2, 0)),
 		},
 	}
 
@@ -162,6 +176,7 @@ func TestDropRock(t *testing.T) {
 func genPuz(height, gasIndex int, addRocks ...RenderRock) *puzT {
 	puz := &puzT{
 		height:   height,
+		gas:      []rune(strings.TrimSpace(example1)),
 		gasIndex: gasIndex,
 		grid:     map[keyT]rune{},
 	}
@@ -193,25 +208,6 @@ var example1 = `
 `
 
 /*
-####
-
-.#.
-###
-.#.
-
-..#
-..#
-###
-
-#
-#
-#
-#
-
-##
-##
-
-
 The first rock begins falling:
 |..@@@@.|
 |.......|
