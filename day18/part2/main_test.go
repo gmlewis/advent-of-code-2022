@@ -7,7 +7,7 @@ import (
 )
 
 func TestExample(t *testing.T) {
-	want := "Solution: 0\n"
+	want := "Solution: 58\n"
 	test.Runner(t, example1, want, process, &printf)
 }
 
@@ -33,5 +33,4 @@ var example1 = `
 3,2,5
 2,1,5
 2,3,5
-
 `
