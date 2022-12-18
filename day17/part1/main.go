@@ -100,21 +100,32 @@ func rock5(x, y int, render bool) RenderRock {
 	return func(p *puzT) bool { return p.checkRock(x, y, rock5def, render) }
 }
 
-func (p *puzT) dropSpecificRock(x int, rockSize keyT, fn rockFunc) {
-	if x > chamberWidth-rockSize[0] {
-		x = chamberWidth - rockSize[0]
-	}
-	y := p.height + 1
+func (p *puzT) dropSpecificRock(rockSize keyT, fn rockFunc) {
+	x, y := startXOffset, p.height+3
+	// fmt.Printf("rock starts at (%v,%v)\n", x, y)
 
-	for y > 0 && fn(x, y-1, false)(p) {
-		y--
+	for {
 		dx := p.getGasDx(1)
-		if x+dx >= 0 && x+dx+rockSize[0] < chamberWidth && fn(x+dx, y, false)(p) {
+		if x+dx >= 0 && x+dx+rockSize[0] <= chamberWidth && fn(x+dx, y, false)(p) {
 			x += dx
+			// dir := "right"
+			// if dx < 0 {
+			// 	dir = "left"
+			// }
+			// fmt.Printf("rock moves %v to x=%v (y=%v)\n", dir, x, y)
 		}
+
+		if y == 0 || !fn(x, y-1, false)(p) {
+			break
+		}
+		y--
+		// fmt.Printf("rock (x=%v) drops to y=%v\n", x, y)
 	}
 
-	fn(x, y, true)(p)
+	// fmt.Printf("rock comes to rest at (%v,%v)\n", x, y)
+	if !fn(x, y, true)(p) {
+		log.Fatalf("Programming error: dropSpecificRock: fn(%v,%v,true)=false, puz:\n%v", x, y, p)
+	}
 
 	newHeight := y + rockSize[1]
 	if newHeight > p.height {
@@ -124,13 +135,7 @@ func (p *puzT) dropSpecificRock(x int, rockSize keyT, fn rockFunc) {
 
 func (p *puzT) dropRock(n int) {
 	rockNum := n % 5
-	dxFreefall := p.getGasDx(startYOffset - 1)
-	startX := startXOffset + dxFreefall
-	if startX < 0 {
-		startX = 0
-	}
-
-	p.dropSpecificRock(startX, rockSizes[rockNum], rockFuncs[rockNum])
+	p.dropSpecificRock(rockSizes[rockNum], rockFuncs[rockNum])
 }
 
 func (p *puzT) getGasDx(n int) int {
@@ -140,8 +145,10 @@ func (p *puzT) getGasDx(n int) int {
 		p.gasIndex = (p.gasIndex + 1) % len(p.gas)
 		switch r {
 		case '>':
+			// fmt.Printf("gas blows right\n")
 			dx++
 		case '<':
+			// fmt.Printf("gas blows left\n")
 			dx--
 		default:
 			log.Fatalf("Bad gas: '%c'", r)
