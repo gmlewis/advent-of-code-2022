@@ -20,19 +20,11 @@ func BenchmarkInput(b *testing.B) {
 }
 
 var example1 = `
-Blueprint 1:
-  Each ore robot costs 4 ore.
-  Each clay robot costs 2 ore.
-  Each obsidian robot costs 3 ore and 14 clay.
-  Each geode robot costs 2 ore and 7 obsidian.
+Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
+Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.
+`
 
-Blueprint 2:
-  Each ore robot costs 2 ore.
-  Each clay robot costs 3 ore.
-  Each obsidian robot costs 3 ore and 8 clay.
-  Each geode robot costs 3 ore and 12 obsidian.
-
-
+/*
 == Minute 1 ==
 1 ore-collecting robot collects 1 ore; you now have 1 ore.
 
@@ -160,5 +152,4 @@ The new geode-cracking robot is ready; you now have 2 of them.
 4 clay-collecting robots collect 4 clay; you now have 41 clay.
 2 obsidian-collecting robots collect 2 obsidian; you now have 8 obsidian.
 2 geode-cracking robots crack 2 geodes; you now have 9 open geodes.
-
-`
+*/
