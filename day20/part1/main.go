@@ -47,14 +47,26 @@ func mix(nums []int) (int, []int) {
 
 func shift(num int, indices map[int]int) {
 	oldIndex := indices[num]
-	var newIndex int
-	switch {
-	case num+oldIndex <= 0:
-		newIndex = (num + oldIndex - 1 + len(indices)) % len(indices)
-	case num+oldIndex >= len(indices):
-		newIndex = (num + oldIndex + 1) % len(indices)
-	default:
-		newIndex = num + oldIndex
+	newIndex := num + oldIndex
+	for newIndex <= 0 {
+		newIndex += len(indices) - 1
+	}
+	for newIndex >= len(indices) {
+		newIndex -= len(indices) + 1
+	}
+
+	// var newIndex int
+	// switch {
+	// case num+oldIndex <= 0:
+	// 	newIndex = (num + oldIndex - 1 + len(indices)) % len(indices)
+	// case num+oldIndex >= len(indices):
+	// 	newIndex = (num + oldIndex + 1) % len(indices)
+	// default:
+	// 	newIndex = num + oldIndex
+	// }
+
+	if newIndex < 0 || newIndex >= len(indices) {
+		log.Fatalf("shift(num=%v, indices=%v), oi=%v, ni=%v", num, len(indices), oldIndex, newIndex)
 	}
 
 	if oldIndex == newIndex {
@@ -69,6 +81,11 @@ func shift(num int, indices map[int]int) {
 			if v > oldIndex && v <= newIndex {
 				// log.Printf("moving %v from index %v to index %v", k, v, v-1)
 				indices[k]--
+
+				if indices[k] < 0 || indices[k] >= len(indices) {
+					log.Fatalf("1: k=%v, indices[k]=%v, shift(num=%v, indices=%v), oi=%v, ni=%v", k, indices[k], num, len(indices), oldIndex, newIndex)
+				}
+
 			}
 		}
 		indices[num] = newIndex
@@ -79,6 +96,11 @@ func shift(num int, indices map[int]int) {
 		if v < oldIndex && v >= newIndex {
 			// log.Printf("moving %v from index %v to index %v", k, v, v+1)
 			indices[k]++
+
+			if indices[k] < 0 || indices[k] >= len(indices) {
+				log.Fatalf("2: k=%v, indices[k]=%v, shift(num=%v, indices=%v), oi=%v, ni=%v", k, indices[k], num, len(indices), oldIndex, newIndex)
+			}
+
 		}
 	}
 	indices[num] = newIndex
