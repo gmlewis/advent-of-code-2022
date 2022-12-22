@@ -121,9 +121,10 @@ func (p *puzT) move(pos posT, steps int) posT {
 }
 
 func (p *puzT) wrappedPos(pos posT) posT {
+	x, y := pos.key[0], pos.key[1]
+
 	// TODO: make this work for any puzzle input - maybe?!?  maybe not.
-	if p.maxCol < 20 { // example1.txt
-		x, y := pos.key[0], pos.key[1]
+	if p.maxCol < 20 { // example1.txt - K=4
 		switch {
 		case y < 5 && pos.dx < 0: // face 1 to face 3 - left to down
 			return posT{dx: 0, dy: 1, key: keyT{4 + y, 5}}
@@ -159,24 +160,47 @@ func (p *puzT) wrappedPos(pos posT) posT {
 		}
 	}
 
-	// input.txt
-	log.Fatalf("not yet implemented")
+	// input.txt - K=50
+	//  16
+	//  4
+	// 35
+	// 2
+	switch {
+	case y > 150 && pos.dx > 0: // face 2 to face 5 - right to up
+		return posT{dx: 0, dy: -1, key: keyT{50 + (y - 150), 150}}
+	case y > 150 && pos.dx < 0: // face 2 to face 1 - left to down
+		return posT{dx: 0, dy: 1, key: keyT{50 + (y - 150), 1}}
+	case y > 150: // face 2 to face 6 - down to down
+		return posT{dx: 0, dy: 1, key: keyT{100 + x, 1}}
+	case y > 100 && pos.dx > 0: // face 5 to face 6 - right to left
+		return posT{dx: -1, dy: 0, key: keyT{150, 51 - (y - 100)}}
+	case y > 100 && pos.dx < 0: // face 3 to face 1 - left to right
+		return posT{dx: 1, dy: 0, key: keyT{51, 51 - (y - 100)}}
+	case y > 100 && pos.dy > 0: // face 5 to face 2 - down to left
+		return posT{dx: -1, dy: 0, key: keyT{50, 100 + x}}
+	case y > 100: // face 3 to face 4 - up to right
+		return posT{dx: 1, dy: 0, key: keyT{51, 50 + x}}
+	case y > 50 && pos.dx > 0: // face 4 to face 6 - right to up
+		return posT{dx: 0, dy: -1, key: keyT{100 + (y - 50), 50}}
+	case y > 50: // face 4 to face 3 - left to down
+		return posT{dx: 0, dy: 1, key: keyT{y - 50, 101}}
+	case pos.dx > 0: // face 6 to face 5 - right to left
+		return posT{dx: -1, dy: 0, key: keyT{100, 151 - y}}
+	case pos.dx < 0: // face 1 to face 3 - left to right
+		return posT{dx: 1, dy: 0, key: keyT{1, 151 - y}}
+	case x > 100 && pos.dy > 0: // face 6 to face 4 - down to left
+		return posT{dx: -1, dy: 0, key: keyT{100, x - 50}}
+	case x > 100 && pos.dy < 0: // face 6 to face 2 - up to up
+		return posT{dx: 0, dy: -1, key: keyT{x - 100, 200}}
+	case pos.dx < 0: // face 1 to face 3 - left to right
+		return posT{dx: 1, dy: 0, key: keyT{1, 151 - y}}
+	default: // face 1 to face 2 - up to right
+		return posT{dx: 1, dy: 0, key: keyT{1, x + 100}}
+	}
 
+	log.Fatalf("unhandled: pos=%v", pos)
 	return posT{}
 }
-
-//         1111
-//         1111
-//         1111
-//         1111
-// 222233334444
-// 222233334444
-// 222233334444
-// 222233334444
-//         55556666
-//         55556666
-//         55556666
-//         55556666
 
 func (p *puzT) wrappedSpace(pos posT) rune {
 	pos = p.wrappedPos(pos)
