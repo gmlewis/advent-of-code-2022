@@ -94,7 +94,7 @@ func (p *puzT) round(roundNum int) (*puzT, bool) {
 		}
 	}
 
-	log.Printf("newP:\n%v", newP)
+	// log.Printf("newP:\n%v", newP)
 	return newP, true
 }
 
