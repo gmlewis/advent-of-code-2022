@@ -27,8 +27,10 @@ func process(filename string) {
 	lines := must.ReadFileLines(filename)
 
 	puz := parsePuzzle(lines)
+	allPaths := allPathsT{[]keyT{{0, -1}}}
+	moves := puz.bestPath(allPaths)
 
-	printf("Solution: %v\n", len(puz.grid))
+	printf("Solution: %v\n", len(moves)-1)
 }
 
 const (
@@ -41,10 +43,67 @@ const (
 type keyT [2]int
 type blizT byte
 type puzT struct {
-	width  int
-	height int
-	pos    keyT
-	grid   map[keyT]blizT
+	minutes int
+	width   int
+	height  int
+	grid    map[keyT]blizT
+}
+type allPathsT [][]keyT
+
+func (p *puzT) bestPath(allPaths allPathsT) []keyT {
+	for {
+		p.minutes++
+		p.blowWindNextStep()
+
+		var newPaths allPathsT
+		alreadySuggested := map[keyT]bool{}
+		for _, path := range allPaths {
+			pos := path[0]
+			options := p.allPossibleMovesFrom(pos)
+			// log.Printf("Minute %v - pos=%v - %v options for path #%v: %+v", p.minutes, pos, len(options), i+1, options)
+			for _, option := range options {
+				if alreadySuggested[option] {
+					continue
+				}
+				alreadySuggested[option] = true
+				newPath := append([]keyT{option}, path...)
+				if option[0] == p.width-1 && option[1] == p.height {
+					// log.Printf("FOUND SOLUTION after %v minutes!", p.minutes)
+					return newPath
+				}
+				newPaths = append(newPaths, newPath)
+			}
+		}
+		allPaths = newPaths
+	}
+
+	return nil
+}
+
+func (p *puzT) allPossibleMovesFrom(pos keyT) []keyT {
+	if pos[0] == p.width-1 && pos[1] == p.height { // already solved - no options
+		return nil
+	}
+	if pos[0] == p.width-1 && pos[1] == p.height-1 { // at exit - one option
+		return []keyT{{p.width - 1, p.height}}
+	}
+
+	var options []keyT
+	if p.grid[pos] == 0 { // stay put
+		options = append(options, pos)
+	}
+
+	f := func(k keyT) {
+		if p.grid[k] == 0 && k[1] >= 0 && k[1] < p.height && k[0] >= 0 && k[0] < p.width {
+			options = append(options, k)
+		}
+	}
+
+	f(keyT{pos[0] + 1, pos[1]})
+	f(keyT{pos[0], pos[1] + 1})
+	f(keyT{pos[0] - 1, pos[1]})
+	f(keyT{pos[0], pos[1] - 1})
+	return options
 }
 
 func (p *puzT) blowWindNextStep() {
@@ -71,7 +130,7 @@ func (p *puzT) blowWindNextStep() {
 }
 
 func parsePuzzle(lines []string) *puzT {
-	p := &puzT{pos: keyT{0, -1}, grid: map[keyT]blizT{}}
+	p := &puzT{grid: map[keyT]blizT{}}
 	ReduceWithIndex(lines, p, parseLine)
 	return p
 }
@@ -116,8 +175,6 @@ func (p *puzT) String() string {
 			k := keyT{x, y}
 			v := bits.OnesCount(uint(p.grid[k]))
 			switch {
-			case v == 0 && p.pos == k:
-				line += "E"
 			case v == 0:
 				line += "."
 			case v == 2:
