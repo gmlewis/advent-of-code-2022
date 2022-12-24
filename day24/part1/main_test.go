@@ -1,13 +1,85 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/gmlewis/advent-of-code-2021/test"
+	"github.com/google/go-cmp/cmp"
 )
 
+func TestBlowWindNextStep(t *testing.T) {
+	in := strings.TrimSpace(`
+#.#####
+#.....#
+#>....#
+#.....#
+#...v.#
+#.....#
+#####.#
+`)
+	want := []string{`
+#.#####
+#.....#
+#.>...#
+#.....#
+#.....#
+#...v.#
+#####.#
+`,
+		`
+#.#####
+#...v.#
+#..>..#
+#.....#
+#.....#
+#.....#
+#####.#
+`,
+		`
+#.#####
+#.....#
+#...2.#
+#.....#
+#.....#
+#.....#
+#####.#
+`,
+		`
+#.#####
+#.....#
+#....>#
+#...v.#
+#.....#
+#.....#
+#####.#
+`,
+		`
+#.#####
+#.....#
+#>....#
+#.....#
+#...v.#
+#.....#
+#####.#
+`,
+	}
+
+	p := parsePuzzle(strings.Split(in, "\n"))
+	if diff := cmp.Diff(in, p.String()); diff != "" {
+		t.Errorf("puzzle mismatch (-want +got):\n%v\n%v", in, p)
+	}
+
+	for i, w := range want {
+		p.blowWindNextStep()
+		if diff := cmp.Diff(strings.TrimSpace(w), p.String()); diff != "" {
+			t.Errorf("puzzle[%v] mismatch (-want +got):%v\n%v", i, w, p)
+		}
+	}
+}
+
 func TestExample(t *testing.T) {
-	want := "Solution: 0\n"
+	want := "Solution: 18\n"
 	test.Runner(t, example1, want, process, &printf)
 }
 
@@ -20,68 +92,15 @@ func BenchmarkInput(b *testing.B) {
 }
 
 var example1 = `
-#.#####
-#.....#
-#>....#
-#.....#
-#...v.#
-#.....#
-#####.#
-
-
-#.#####
-#.....#
-#.>...#
-#.....#
-#.....#
-#...v.#
-#####.#
-
-
-#.#####
-#...v.#
-#..>..#
-#.....#
-#.....#
-#.....#
-#####.#
-
-
-#.#####
-#.....#
-#...2.#
-#.....#
-#.....#
-#.....#
-#####.#
-
-
-#.#####
-#.....#
-#....>#
-#...v.#
-#.....#
-#.....#
-#####.#
-
-
-#.#####
-#.....#
-#>....#
-#.....#
-#...v.#
-#.....#
-#####.#
-
-
 #.######
 #>>.<^<#
 #.<..<<#
 #>v.><>#
 #<^v^^>#
 ######.#
+`
 
-
+/*
 Initial state:
 #E######
 #>>.<^<#
@@ -234,4 +253,4 @@ Minute 18, move down:
 #<....>#
 ######E#
 
-`
+*/
