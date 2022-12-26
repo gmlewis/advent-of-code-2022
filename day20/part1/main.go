@@ -48,19 +48,24 @@ func mix(nums []int) (int, []int) {
 	return reorder(nums, indices)
 }
 
+func adjustNewIndex(newIndex, length int) int {
+	for newIndex <= 0 {
+		newIndex += length - 1
+	}
+	for newIndex >= length {
+		newIndex -= (length - 1)
+	}
+	return newIndex
+}
+
 func shift(index, num int, indices []int) {
 	if num == 0 {
 		return
 	}
 	oldIndex := indices[index]
-	newIndex := num + oldIndex
+	newIndex := adjustNewIndex(num+oldIndex, len(indices))
+	// fmt.Printf("{ newIndex: %v, length: %v, want: %v },\n", num+oldIndex, len(indices), newIndex)
 	// log.Printf("shift(index=%v, num=%v, len(indices)=%v), oldIndex=%v, newIndex=%v", index, num, len(indices), oldIndex, newIndex)
-	for newIndex <= 0 {
-		newIndex += len(indices) - 1
-	}
-	for newIndex >= len(indices) {
-		newIndex -= (len(indices) - 1)
-	}
 	if oldIndex == newIndex {
 		return
 	}
