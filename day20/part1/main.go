@@ -25,7 +25,9 @@ func process(filename string) {
 	lines := must.ReadFileLines(filename)
 
 	nums := Map(lines, must.Atoi)
+	// log.Printf("%v nums=%v ...", len(nums), nums[:7])
 	zeroIndex, mixed := mix(nums)
+	// log.Printf("zeroIndex=%v, mixed[zeroIndex]=%v", zeroIndex, mixed[zeroIndex])
 	v1 := mixed[(zeroIndex+1000)%len(mixed)]
 	v2 := mixed[(zeroIndex+2000)%len(mixed)]
 	v3 := mixed[(zeroIndex+3000)%len(mixed)]
@@ -34,94 +36,75 @@ func process(filename string) {
 }
 
 func mix(nums []int) (int, []int) {
-	original := append([]int{}, nums...)
-
-	indices := nums2map(nums)
-
-	for _, v := range original {
-		shift(v, indices)
+	indices := make([]int, len(nums))
+	for i := range nums {
+		indices[i] = i
 	}
 
-	return map2nums(indices)
+	for i, v := range nums {
+		shift(i, v, indices)
+	}
+
+	return reorder(nums, indices)
 }
 
-func shift(num int, indices map[int]int) {
-	oldIndex := indices[num]
+func shift(index, num int, indices []int) {
+	if num == 0 {
+		return
+	}
+	oldIndex := indices[index]
 	newIndex := num + oldIndex
+	// log.Printf("shift(index=%v, num=%v, len(indices)=%v), oldIndex=%v, newIndex=%v", index, num, len(indices), oldIndex, newIndex)
 	for newIndex <= 0 {
 		newIndex += len(indices) - 1
 	}
 	for newIndex >= len(indices) {
-		newIndex -= len(indices) + 1
+		newIndex -= (len(indices) - 1)
 	}
-
-	// var newIndex int
-	// switch {
-	// case num+oldIndex <= 0:
-	// 	newIndex = (num + oldIndex - 1 + len(indices)) % len(indices)
-	// case num+oldIndex >= len(indices):
-	// 	newIndex = (num + oldIndex + 1) % len(indices)
-	// default:
-	// 	newIndex = num + oldIndex
-	// }
-
-	if newIndex < 0 || newIndex >= len(indices) {
-		log.Fatalf("shift(num=%v, indices=%v), oi=%v, ni=%v", num, len(indices), oldIndex, newIndex)
-	}
-
 	if oldIndex == newIndex {
 		return
 	}
-	// log.Printf("shift(num=%v, indices=%v), oi=%v, ni=%v", num, indices, oldIndex, newIndex)
-	// log.Printf("moving %v from index %v to index %v", num, oldIndex, newIndex)
+	// log.Printf("newIndex=%v", newIndex)
 
 	dx := newIndex - oldIndex
+	// log.Printf("moving %v from index %v to index %v (dx=%v)", num, oldIndex, newIndex, dx)
 	if dx > 0 {
-		for k, v := range indices {
+		for i, v := range indices {
 			if v > oldIndex && v <= newIndex {
-				// log.Printf("moving %v from index %v to index %v", k, v, v-1)
-				indices[k]--
-
-				if indices[k] < 0 || indices[k] >= len(indices) {
-					log.Fatalf("1: k=%v, indices[k]=%v, shift(num=%v, indices=%v), oi=%v, ni=%v", k, indices[k], num, len(indices), oldIndex, newIndex)
+				indices[i]--
+				if indices[i] < 0 || indices[i] >= len(indices) {
+					log.Fatalf("A: ERROR: indices[%v]=%v", i, indices[i])
 				}
-
 			}
 		}
-		indices[num] = newIndex
-		return
-	}
-
-	for k, v := range indices {
-		if v < oldIndex && v >= newIndex {
-			// log.Printf("moving %v from index %v to index %v", k, v, v+1)
-			indices[k]++
-
-			if indices[k] < 0 || indices[k] >= len(indices) {
-				log.Fatalf("2: k=%v, indices[k]=%v, shift(num=%v, indices=%v), oi=%v, ni=%v", k, indices[k], num, len(indices), oldIndex, newIndex)
+		indices[index] = newIndex
+		if indices[index] < 0 || indices[index] >= len(indices) {
+			log.Fatalf("B: ERROR: indices[%v]=%v", index, indices[index])
+		}
+	} else {
+		for i, v := range indices {
+			if v < oldIndex && v >= newIndex {
+				indices[i]++
+				if indices[i] < 0 || indices[i] >= len(indices) {
+					log.Fatalf("C: ERROR: indices[%v]=%v", i, indices[i])
+				}
 			}
-
+		}
+		indices[index] = newIndex
+		if indices[index] < 0 || indices[index] >= len(indices) {
+			log.Fatalf("D: ERROR: indices[%v]=%v", index, indices[index])
 		}
 	}
-	indices[num] = newIndex
 }
 
-func map2nums(indices map[int]int) (int, []int) {
-	nums := make([]int, len(indices))
+func reorder(nums, indices []int) (int, []int) {
+	result := make([]int, len(nums))
 	var zeroIndex int
-	for k, v := range indices {
-		nums[v] = k
-		if k == 0 {
-			zeroIndex = v
+	for i, v := range nums {
+		result[indices[i]] = v
+		if v == 0 {
+			zeroIndex = indices[i]
 		}
 	}
-	return zeroIndex, nums
-}
-
-func nums2map(nums []int) map[int]int {
-	indices := map[int]int{}
-	for i, v := range nums {
-		indices[v] = i
-	}
-	return indices
+	return zeroIndex, result
 }
